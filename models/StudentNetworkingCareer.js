@@ -1,30 +1,28 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const StudentTestingSchema = Schema({
+const StudentCareerSchema = Schema({
     student_id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    test_type: {
-        type: String,
-        enum: ['official', 'mock'],
-        required: true
-    },
-    name: {
+    title: {
         type: String,
         required: true
     },
-    test_date: {
+    start_date: {
         type: Date,
         required: true
     },
-    status : {
+    end_date: {
+        type: Date,
+        required: true
+    },
+    description: {
         type: String,
-        enum : ['planned', 'progress', 'completed'],
-        default: 'planned',
-    }
+        required: true
+    },
 },
     {
         timestamps: true,
@@ -32,4 +30,4 @@ const StudentTestingSchema = Schema({
 );
 
 
-module.exports = mongoose.model('StudentTesting', StudentTestingSchema);
+module.exports = mongoose.model('StudentNetworking', StudentCareerSchema);

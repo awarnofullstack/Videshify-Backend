@@ -32,7 +32,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== 'counselor') {
         throw new Error("Invalid credentials or no user exist.");
     }
 

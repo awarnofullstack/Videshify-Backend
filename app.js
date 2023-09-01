@@ -1,8 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-// const studentRouter = require("./routes/user");
-// const adminRouter = require("./routes/admin");
+require("express-async-errors");
+
+// Error Handler & Not Found Handler Middleware
+const notFoundMiddleware = require("./middleware/notFound");
+const errorHandlerMiddleware = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -11,6 +14,9 @@ app.use(
     origin: ["*"],
   })
 );
+
+app.use(express.json({ limit: '100mb' }));
+
 
 require("dotenv").config({
   path: `.env.${process.env.NODE_ENV?.trim()}`,
@@ -22,6 +28,10 @@ app.get("/", (req, res) => {
 
 const adminRouter = require("./routes/admin/index");
 app.use("/api/admin", adminRouter);
+
+
+app.use(errorHandlerMiddleware);
+app.use(notFoundMiddleware);
 
 const start = async () => {
   try {
