@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=testing & node app.js",
-    "start": "NODE_ENV=development & node app.js",
-    "dev": "NODE_ENV=development & node app.js"
+    "test": "SET NODE_ENV=testing & node app.js",
+    "start": "SET NODE_ENV=development & node app.js",
+    "dev": "SET NODE_ENV=development & node app.js"
   },
   "author": "videshify",
   "license": "ISC",
