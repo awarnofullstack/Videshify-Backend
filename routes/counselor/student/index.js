@@ -5,12 +5,13 @@ const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
 const Student = require("../../../models/Student");
 const Counselor = require("../../../models/Counselor");
+const StudentInCounselor = require("../../../models/StudentInCounselor");
 
 const router = express.Router();
 
 router.get('/list', async (req, res) => {
 
-    const data = await Student.findOne({ user_id: req.user.id }).populate('user_id').lean();
+    const data = await StudentInCounselor.findOne({ user_id: req.user.id }).populate('user_id').lean();
 
     if (!data) {
         const response = responseJson(false, data, 'Your profile is not completed.', StatusCodes.OK, []);
