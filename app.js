@@ -15,7 +15,7 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '500mb' }));
 
 
 require("dotenv").config({
