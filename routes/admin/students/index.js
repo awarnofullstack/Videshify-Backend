@@ -61,10 +61,7 @@ router.get('/:id/academics', async (req, res) => {
     const data = await StudentSchoolAcademic.findStudentByID(id);
     const response = responseJson(true, data, '', 200, []);
     return res.status(StatusCodes.OK).json(response);
-})
-
-
-
+});
 
 
 module.exports = router;
