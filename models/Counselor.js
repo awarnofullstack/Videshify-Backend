@@ -7,10 +7,6 @@ const CounselorSchema = new Schema({
         ref: 'User',
         required: true
     },
-    age: {
-        type: Number,
-        required: true
-    },
     gender: {
         type: String,
         enum: ['male', 'female', 'bio sexual', 'transgender'],
@@ -21,10 +17,6 @@ const CounselorSchema = new Schema({
         required: true
     },
     degree_pursuing: {
-        type: String,
-        required: true
-    },
-    high_school_name: {
         type: String,
         required: true
     },

@@ -32,5 +32,17 @@ function authorizeRoles(roles) {
     };
 }
 
+function authorizeApproved() {
+    return (req, res, next) => {
+        const approved = req.user.approved;
 
-module.exports = { authenticateToken, authorizeRoles };
+        if (approved) {
+            next();
+        } else {
+            res.status(403).json({ message: 'Account is in pending status.' });
+        }
+    };
+}
+
+
+module.exports = { authenticateToken, authorizeRoles, authorizeApproved };

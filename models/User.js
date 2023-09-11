@@ -22,7 +22,21 @@ const UserSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ['student', 'admin', 'counselor', 'student counselor'],
-    }
+    },
+    approved: {
+      type: Boolean,
+      default: false,
+      required: false
+    },
+    resetToken: {
+      type: String,
+      default: null,
+    },
+    resetTokenExpiry: {
+      type: Date,
+      expires: '10m',
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -45,6 +59,15 @@ UserSchema.methods.signJWT = function () {
   });
 }
 
+
+UserSchema.methods.makeApprove = function (id) {
+  return this.updateOne({ approved: true });
+}
+
+UserSchema.methods.makePending = function (id) {
+  return this.updateOne({ approved: false });
+}
+
 // Custom statics 
 UserSchema.statics.findStudents = function (filter) {
   return this.find({ role: 'student', ...filter }).select({ password: 0 });
@@ -61,9 +84,6 @@ UserSchema.set('toJSON', { virtuals: true });
 UserSchema.virtual('name').get(function () {
   return this.first_name + " " + this.last_name;
 })
-
-
-
 
 
 module.exports = mongoose.model("User", UserSchema);

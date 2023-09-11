@@ -20,5 +20,24 @@ router.get('/', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
+router.post('/complete', async (req, res) => {
+
+    const counselorRef = await Counselor.findOne({ user_id: req.user.id });
+    const body = req.body;
+    body.user_id = req.user.id
+
+    if (!counselorRef) {
+        await Counselor.create(body);
+        const response = responseJson(true, {}, 'Profile Completed', StatusCodes.CREATED, []);
+        return res.status(StatusCodes.CREATED).json(response);
+    }
+
+    await counselorRef.updateOne(body);
+    const response = responseJson(true, {}, 'Profile Completed', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
+
 
 module.exports = router;  

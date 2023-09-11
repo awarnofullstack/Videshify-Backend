@@ -3,23 +3,17 @@ const { body, validationResult } = require("express-validator");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const transporter = require("../../../utils/emailTransport");
 
-
-
-
-const transporter = nodemailer.createTransport({
-    service: 'smtp', // e.g., Gmail
-    auth: {
-        user: 'your_email@example.com',
-        pass: 'your_email_password',
-    },
-});
 
 const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
+const fs = require("fs");
+const ejs = require("ejs");
+
+
 
 const router = express.Router();
 
@@ -85,63 +79,5 @@ router.post("/register", registerValidationChain, async (req, res) => {
     const response = responseJson(true, { token, user }, ReasonPhrases.CREATED, StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
 });
-
-
-// Store reset tokens in a temporary storage (e.g., an object)
-const resetTokens = {};
-
-// Generate a reset token and email the reset link to the user
-router.post('/reset-password', resetPasswordValidationChain, async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const response = responseJson(false, null, ReasonPhrases.UNPROCESSABLE_ENTITY, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
-        return res.status(StatusCodes.OK).json(response);
-    }
-
-    const { email } = req.body;
-
-    // Generate a unique reset token
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    resetTokens[resetToken] = email;
-
-    // Send an email with the reset link
-    const resetLink = `https://videshify.onrender.com/reset-password/${resetToken}`;
-    const mailOptions = {
-        from: 'your_email@example.com',
-        to: email,
-        subject: 'Password Reset',
-        text: `Click the following link to reset your password: ${resetLink}`,
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.send('Password reset link sent to your email.');
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Failed to send reset email.');
-    }
-});
-
-// Handle password reset
-router.post('/reset-password/:token', async (req, res) => {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    const email = resetTokens[token];
-    if (!email) {
-        return res.status(400).send('Invalid or expired reset token.');
-    }
-
-    // Hash the new password before saving it to the database
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Update the user's password in the database (implement this part)
-
-    // Delete the used reset token
-    delete resetTokens[token];
-
-    res.send('Password reset successful.');
-});
-
 
 module.exports = router;  
