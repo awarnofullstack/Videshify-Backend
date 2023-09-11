@@ -10,15 +10,15 @@ const CounselorSchema = new Schema({
     gender: {
         type: String,
         enum: ['male', 'female', 'bio sexual', 'transgender'],
-        required: true
+        required: false
     },
     high_school_name: {
         type: String,
-        required: true
+        required: false
     },
     degree_pursuing: {
         type: String,
-        required: true
+        required: false
     },
     organization_type: {
         type: String,
@@ -35,7 +35,7 @@ const CounselorSchema = new Schema({
     },
     education: {
         type: String,
-        required: true
+        required: false
     },
     experience: {
         type: Number,
