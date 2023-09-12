@@ -48,7 +48,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
 
     const hasProfile = await Counselor.findOne({ user_id: user.id }).countDocuments();
 
-    const eligiblity = {
+    const eligibility = {
         isApproved: user.approved,
         isCompleted: hasProfile ? true : false,
     }
