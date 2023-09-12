@@ -32,6 +32,8 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
         resetTokenExpiry: Date.now(),
     });
 
+    console.log(isUser);
+
     if (!isUser) {
         throw new Error('Email address is not valid.');
     }

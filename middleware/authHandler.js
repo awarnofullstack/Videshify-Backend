@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const {StatusCodes} = require("http-status-codes")
 
 function authenticateToken(req, res, next) {
     let token = req.header('Authorization');
@@ -32,16 +33,14 @@ function authorizeRoles(roles) {
     };
 }
 
-function authorizeApproved() {
-    return (req, res, next) => {
-        const approved = req.user.approved;
+function authorizeApproved(req, res, next) {
+    const approved = req.user.approved;
 
-        if (approved) {
-            next();
-        } else {
-            res.status(403).json({ message: 'Account is in pending status.' });
-        }
-    };
+    if (approved) {
+        next();
+    } else {
+        return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Account is in pending status.' });
+    }
 }
 
 

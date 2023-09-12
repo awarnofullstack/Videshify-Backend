@@ -9,6 +9,6 @@ const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../
 
 router.use('/auth', auth);
 router.use('/account', authenticateToken, authorizeRoles('counselor'), account);
-router.use('/student', authenticateToken, authorizeRoles('counselor'), authorizeApproved, student);
+router.use('/student', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], student);
 
 module.exports = router;

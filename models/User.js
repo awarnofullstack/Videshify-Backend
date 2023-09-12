@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const mongoosePaginate = require("mongoose-paginate-v2")
 const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema(
@@ -43,6 +43,7 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+UserSchema.plugin(mongoosePaginate);
 
 // Custom methods 
 UserSchema.methods.signJWT = function () {
