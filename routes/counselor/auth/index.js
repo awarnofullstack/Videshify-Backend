@@ -10,6 +10,7 @@ const transporter = require("../../../utils/emailTransport");
 const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
+const Counselor = require("../../../models/Counselor");
 const fs = require("fs");
 const ejs = require("ejs");
 
@@ -52,10 +53,16 @@ router.post("/login", loginValidationChain, async (req, res) => {
     if (!verifyPassword) {
         throw new Error("Invalid credentials, Try again.");
     }
-
     const token = user.signJWT();
 
-    const response = responseJson(true, { token, user }, `You're logged in.`, StatusCodes.OK);
+    const hasProfile = await Counselor.findOne({ user_id: user.id }).countDocuments();
+
+    const eligiblity = {
+        isApproved: user.approved,
+        isCompleted: hasProfile ? true : false,
+    }
+
+    const response = responseJson(true, { token, user, eligiblity }, `You're logged in.`, StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
 });
 
