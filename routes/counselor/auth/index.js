@@ -2,19 +2,11 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const crypto = require('crypto');
-const transporter = require("../../../utils/emailTransport");
 
 
-const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
 const Counselor = require("../../../models/Counselor");
-const fs = require("fs");
-const ejs = require("ejs");
-
-
 
 const router = express.Router();
 
@@ -23,7 +15,6 @@ body('password').notEmpty().withMessage('Password is required field.')
     .isLength({ min: 8 })
     .withMessage('Password should have atleast 8 characters.')];
 
-const resetPasswordValidationChain = [body('email').notEmpty().isEmail().trim()];
 
 const registerValidationChain = [
     body('first_name').notEmpty().toLowerCase().withMessage('First name is required field.'),
@@ -62,7 +53,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
         isCompleted: hasProfile ? true : false,
     }
 
-    const response = responseJson(true, { token, user, eligiblity }, `You're logged in.`, StatusCodes.OK);
+    const response = responseJson(true, { token, user, eligibility }, `You're logged in.`, StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
 });
 

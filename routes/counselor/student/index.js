@@ -11,16 +11,12 @@ const router = express.Router();
 
 router.get('/all', async (req, res) => {
 
-
-    // const data = await User.paginate({}, {...req.query});
-    // return res.status(StatusCodes.OK).json(data);
-
     const { limit, page } = req.query;
     const options = {
         limit,
         page,
-        populate: 'user_id',
-        query: { user_id: req.user.id }
+        populate: 'student',
+        query: { counselor: req.user.id }
     }
 
     const data = await StudentInCounselor.paginate({}, { ...options });
@@ -34,7 +30,81 @@ router.get('/all', async (req, res) => {
 });
 
 
-// add test in student 
+router.get('/:id/profile', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id').lean();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.get('/:id/testing', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).lean();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.get('/:id/academics', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).lean();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
+router.get('/:id/activities', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).lean();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
+router.get('/:id/careers', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).lean();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
+
+
 // add task in student 
 
 module.exports = router;
