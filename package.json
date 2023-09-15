@@ -6,7 +6,7 @@
   "scripts": {
     "test": "set NODE_ENV=testing & node app.js",
     "start": "set NODE_ENV=development & node app.js",
-    "dev": "set NODE_ENV=development & node app.js"
+    "dev": "set NODE_ENV=development & nodemon app.js"
   },
   "author": "videshify",
   "license": "ISC",
