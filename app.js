@@ -77,7 +77,8 @@ app.use("/api/counselor", counselorRouter);
 *****************************************************************************************
 */
 
-
+const StudentRouter = require("./routes/website/index");
+app.use("/api", StudentRouter);
 
 
 /*
@@ -85,6 +86,8 @@ app.use("/api/counselor", counselorRouter);
 -------------------- Web Routes & Controller ----------------------
 *****************************************************************************************
 */
+
+
 
 
 app.use(errorHandlerMiddleware);

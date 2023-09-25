@@ -69,8 +69,6 @@ router.post('/reset-password/:token', async (req, res) => {
 
     const tokenUser = await User.findOne({ resetToken: token });
 
-    console.log(token);
-    console.log(tokenUser);
     if (!tokenUser) {
         const response = responseJson(false, null, 'Invalid or expired reset token.', StatusCodes.BAD_REQUEST, []);
         return res.status(StatusCodes.BAD_REQUEST).json(response);

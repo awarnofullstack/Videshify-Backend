@@ -22,7 +22,8 @@
       .content {
         padding: 20px;
       }
-      a.btn, .btn {
+      a.btn,
+      .btn {
         text-decoration: none;
         color: #fff !important;
         font-weight: bold;
@@ -47,15 +48,12 @@
       </div>
       <div class="content">
         <p>Hello, user!</p>
-        <p>Click on following button to reset your password.</p>
-
-        <a
-          href="https://videshify.onrender.com/reset-password/<%= resetToken %>"
-          class="btn"
-          target="_blank"
-        >
-          Reset Password
-        </a>
+        <p>
+          Your one time password for email registration is
+          <code><b>#<%= otp %></b></code
+          >.
+        </p>
+        <p>OTP is valid for next 10 minutes.</p>
       </div>
       <div class="footer">
         <p>© 2023 Videshify</p>

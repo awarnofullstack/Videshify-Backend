@@ -78,6 +78,10 @@ UserSchema.statics.findStudentByID = function (id) {
   return this.findOne({ _id: id }).select({ password: 0 });
 }
 
+UserSchema.statics.addResetToken = function (otp) {
+  return this.updateOne({ resetToken: otp });
+}
+
 // Configure toJSON option to include virtuals
 UserSchema.set('toJSON', { virtuals: true });
 
