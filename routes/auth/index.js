@@ -4,6 +4,7 @@ const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const transporter = require("../../utils/emailTransport");
+const { sendMailAsync } = require("../../utils/emailTransport");
 
 const responseJson = require("../../utils/responseJson");
 const User = require("../../models/User");
@@ -42,26 +43,24 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
         from: 'acodewebdev@gmail.com',
         to: email,
         subject: 'Password Reset',
-        html: null,
+        html: "../emails/reset-link.ejs",
     };
 
-
-    const emailTemplate = fs.readFileSync(require.resolve("../../emails/reset-link.ejs"), 'utf-8');
-    const renderedEmail = ejs.render(emailTemplate, { resetToken, subject: mailOptions.subject })
-    mailOptions.html = renderedEmail
+    const options = { resetToken }
 
     try {
-        await transporter.sendMail(mailOptions);
+        await sendMailAsync(mailOptions, options);
         const response = responseJson(true, null, 'Password reset link sent to your email.', 200, []);
         return res.status(200).json(response);
     } catch (error) {
         const response = responseJson(false, null, 'Failed to send reset email.', 500, []);
+        console.log(error);
         return res.status(500).json(response);
     }
 
 });
 
-router.get('/password-reset/:token', (req, res) => {
+router.get('/reset-password/:token', (req, res) => {
     const token = req.params.token
     return res.render('reset-password', { token });
 });

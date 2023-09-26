@@ -15,17 +15,13 @@ const transporter = nodemailer.createTransport({
 });
 
 
-const sendMailAsync = (toMail, subject, view, options = {}) => {
+const sendMailAsync = (mailOptions, options = {}) => {
+
+    // console.log(mailOptions);
 
     return new Promise((res, rej) => {
-        const mailOptions = {
-            from: 'acodewebdev@gmail.com',
-            to: toMail,
-            subject,
-            html: null,
-        };
 
-        const emailTemplate = fs.readFileSync(require.resolve(view), 'utf-8');
+        const emailTemplate = fs.readFileSync(require.resolve(mailOptions.html), 'utf-8');
         const renderedEmail = ejs.render(emailTemplate, { ...options, subject: mailOptions.subject })
         mailOptions.html = renderedEmail
 
