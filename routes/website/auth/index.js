@@ -2,7 +2,7 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
-const {authenticateToken, authorizeRoles} = require("../../../middleware/authHandler"); 
+const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 
 
 const responseJson = require("../../../utils/responseJson");
@@ -104,15 +104,33 @@ router.post("/otp/verification", verificationOtpValidationChain, async (req, res
 
     const { email, otp } = req.body;
 
+    const isUser = await User.findOne({ email });
+
+    if (isUser) {
+        throw new Error('Account already exist.');
+    }
+
     const isConfirmed = await ResetToken.findOne({ entity: email, resetToken: otp });
 
     if (!isConfirmed) {
         const response = responseJson(false, null, 'Invalid or expired reset token.', StatusCodes.BAD_REQUEST, []);
         return res.status(StatusCodes.BAD_REQUEST).json(response);
     }
+    await isConfirmed.deleteOne();
 
-    const user = await User.create({ email, role: 'student' });
-    const response = responseJson(true, user, 'Email is registered successfuly.', StatusCodes.CREATED, [])
+    let user = new User;
+    user.email = email;
+    user.role = 'student';
+    user.save();
+
+    const token = user.signJWT()
+
+    if (!user) {
+        const response = responseJson(false, user, 'Failed to register user', StatusCodes.CREATED, [])
+        return res.status(StatusCodes.CREATED).json(response);
+    }
+
+    const response = responseJson(true, { token, user }, 'Email is registered successfuly.', StatusCodes.CREATED, [])
     return res.status(StatusCodes.CREATED).json(response);
 });
 
@@ -124,6 +142,8 @@ router.post("/register/basic", [registerValidationChain, authenticateToken, auth
         const response = responseJson(false, null, ReasonPhrases.UNPROCESSABLE_ENTITY, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
         return res.status(StatusCodes.OK).json(response);
     }
+
+
 
     await User.findOne({ _id: req.user._id }).updateOne({ ...req.body });
 

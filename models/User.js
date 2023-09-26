@@ -16,7 +16,8 @@ const UserSchema = new mongoose.Schema(
     },
     phone: {
       type: Number,
-      unique: true
+      unique: true,
+      default: null
     },
     password: String,
     role: {
@@ -51,6 +52,8 @@ UserSchema.methods.signJWT = function () {
   if (user) {
     user.password = undefined;
     user.createdAt = undefined;
+    user.resetTokenExpiry = undefined;
+    user.resetToken = undefined;
     user.updatedAt = undefined;
     user.__v = undefined;
   }
