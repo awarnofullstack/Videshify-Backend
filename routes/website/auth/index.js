@@ -88,7 +88,15 @@ router.post("/register/email", registerEmailValidationChain, async (req, res) =>
     // user.addResetToken(otp);
     await ResetToken.create({ entity: email, resetToken: otp, resetTokenExpiry: Date.now() })
 
-    await sendMailAsync(email, 'Email verification otp.', "../emails/views/verification-otp.ejs", { otp });
+    const mailOptions = {
+        to: email,
+        subject: 'Email verification otp',
+        html: "../emails/views/verification-otp.ejs",
+    };
+
+    const options = { otp }
+
+    await sendMailAsync(mailOptions, options);
 
     const response = responseJson(true, {}, 'OTP is sent successfuly.', StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);

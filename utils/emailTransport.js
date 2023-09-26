@@ -17,10 +17,10 @@ const transporter = nodemailer.createTransport({
 
 const sendMailAsync = (mailOptions, options = {}) => {
 
-    // console.log(mailOptions);
-
     return new Promise((res, rej) => {
 
+        mailOptions.from = "acodewebdev@gmail.com";
+        
         const emailTemplate = fs.readFileSync(require.resolve(mailOptions.html), 'utf-8');
         const renderedEmail = ejs.render(emailTemplate, { ...options, subject: mailOptions.subject })
         mailOptions.html = renderedEmail

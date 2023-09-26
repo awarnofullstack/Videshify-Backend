@@ -40,7 +40,6 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
     // Send an email with the reset link
     const mailOptions = {
-        from: 'acodewebdev@gmail.com',
         to: email,
         subject: 'Password Reset',
         html: "../emails/reset-link.ejs",
