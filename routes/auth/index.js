@@ -61,6 +61,11 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
 });
 
+router.get('/password-reset/:token', (req, res) => {
+    const token = req.params.token
+    return res.render('reset-password', { token });
+});
+
 // Handle password reset
 router.post('/reset-password/:token', async (req, res) => {
     const { token } = req.params;
