@@ -143,11 +143,11 @@ router.post("/register/basic", [registerValidationChain, authenticateToken, auth
         return res.status(StatusCodes.OK).json(response);
     }
 
-
-
     await User.findOne({ _id: req.user._id }).updateOne({ ...req.body });
 
-    const response = responseJson(true, req.user, 'User basic detail completed.', StatusCodes.OK, [])
+    const modUser = await User.findOne({ _id: req.user._id });
+
+    const response = responseJson(true, modUser, 'User basic detail completed.', StatusCodes.OK, [])
     return res.status(StatusCodes.OK).json(response);
 });
 
