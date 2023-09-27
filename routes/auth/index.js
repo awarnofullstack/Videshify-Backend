@@ -12,9 +12,7 @@ const fs = require("fs");
 const ejs = require("ejs");
 
 const router = express.Router();
-
 const resetPasswordValidationChain = [body('email').notEmpty().isEmail().trim()];
-
 
 // Generate a reset token and email the reset link to the user
 router.post('/reset-password', resetPasswordValidationChain, async (req, res) => {
@@ -87,5 +85,4 @@ router.post('/reset-password/:token', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-
-module.exports = router;  
+module.exports = router;

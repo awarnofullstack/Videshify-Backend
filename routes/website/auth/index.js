@@ -34,6 +34,9 @@ const registerValidationChain = [
     body('first_name').notEmpty().toLowerCase().withMessage('First name is required field.'),
     body('last_name').notEmpty().toLowerCase().withMessage('Last name is required field.'),
 ];
+const passwordValidationChain = [
+    body('password').notEmpty().withMessage('First name is required field.'),
+];
 
 router.post("/login", loginValidationChain, async (req, res) => {
 
@@ -156,6 +159,22 @@ router.post("/register/basic", [registerValidationChain, authenticateToken, auth
     const modUser = await User.findOne({ _id: req.user._id });
 
     const response = responseJson(true, modUser, 'User basic detail completed.', StatusCodes.OK, [])
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.post("/change/password", [passwordValidationChain, authenticateToken, authorizeRoles('student')], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const response = responseJson(false, null, ReasonPhrases.UNPROCESSABLE_ENTITY, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
+        return res.status(StatusCodes.OK).json(response);
+    }
+    const { password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.findOne({ _id: req.user._id }).updateOne({ password: hashedPassword });
+
+    const modUser = await User.findOne({ _id: req.user._id });
+
+    const response = responseJson(true, modUser, 'Password changed successfuly.', StatusCodes.OK, [])
     return res.status(StatusCodes.OK).json(response);
 });
 
