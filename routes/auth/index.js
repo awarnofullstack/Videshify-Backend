@@ -28,15 +28,19 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
 
     const resetToken = crypto.randomBytes(20).toString('hex');
-    const isUser = await User.findOneAndUpdate({ email }, {
-        resetToken,
-        resetTokenExpiry: Date.now(),
-    });
 
+    console.log(process.env.DB_URL);
+    const isUser = await User.findOne({ email : "abhisheksinghk30@gmail.com" });
 
+    console.log(isUser);
     if (!isUser) {
         throw new Error('Email address is not valid.');
     }
+
+    isUser.updateOne({
+        resetToken,
+        resetTokenExpiry: Date.now(),
+    })
 
     // Send an email with the reset link
     const mailOptions = {
@@ -59,11 +63,6 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
 });
 
-router.get('/reset-password/:token', (req, res) => {
-    const token = req.params.token
-    return res.render('reset-password', { token });
-});
-
 // Handle password reset
 router.post('/reset-password/:token', async (req, res) => {
     const { token } = req.params;
@@ -72,20 +71,19 @@ router.post('/reset-password/:token', async (req, res) => {
     const tokenUser = await User.findOne({ resetToken: token });
 
     if (!tokenUser) {
-        const response = responseJson(false, null, 'Invalid or expired reset token.', StatusCodes.BAD_REQUEST, []);
-        return res.status(StatusCodes.BAD_REQUEST).json(response);
+        return res.render('reset-password', { token, errorMessage: 'Invalid or expired reset token.' });
     }
 
-    // Hash the new password before saving it to the database
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update the user's password in the database (implement this part)
     await tokenUser.updateOne({
         password: hashedPassword,
         token: null
     });
 
-    const response = responseJson(true, null, 'Password has changed successfuly', StatusCodes.OK, []);
+    // const response = responseJson(true, null, 'Password has changed successfuly', StatusCodes.OK, []);
+    return res.render('reset-password-confirmed', { message: 'Password has changed successfuly.' });
+
     return res.status(StatusCodes.OK).json(response);
 });
 

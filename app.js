@@ -29,8 +29,10 @@ app.get("/", (req, res) => {
   return res.status(200).send("hello");
 });
 
-
-
+app.get('/reset-password/:token', (req, res) => {
+  const token = req.params.token;
+  return res.render('reset-password', { token, errorMessage : null });
+});
 
 /*
 *****************************************************************************************
