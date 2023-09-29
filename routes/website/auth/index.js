@@ -7,7 +7,7 @@ const { authenticateToken, authorizeRoles } = require("../../../middleware/authH
 
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
-const Student = require("../../../models/Student");
+const { Student } = require("../../../models/Student");
 const ResetToken = require("../../../models/ResetToken");
 const generate = require("../../../utils/generateOTP");
 const { sendMailAsync } = require("../../../utils/emailTransport");
@@ -115,7 +115,11 @@ router.post("/otp/verification", verificationOtpValidationChain, async (req, res
 
     const { email, otp } = req.body;
 
+
+    console.log(email);
     const isUser = await User.findOne({ email });
+
+    console.log(isUser);
 
     if (isUser) {
         throw new Error('Account already exist.');
@@ -127,24 +131,19 @@ router.post("/otp/verification", verificationOtpValidationChain, async (req, res
         const response = responseJson(false, null, 'Invalid or expired reset token.', StatusCodes.BAD_REQUEST, []);
         return res.status(StatusCodes.BAD_REQUEST).json(response);
     }
-    await isConfirmed.deleteOne();
 
-    let user = new User;
-    user.email = email;
-    user.role = 'student';
-    user.save();
+    let user = await User.create({ email, role: 'student', approved: true });
 
     const token = user.signJWT()
-
     if (!user) {
         const response = responseJson(false, user, 'Failed to register user', StatusCodes.CREATED, [])
         return res.status(StatusCodes.CREATED).json(response);
     }
+    await isConfirmed.deleteOne();
 
     const response = responseJson(true, { token, user }, 'Email is registered successfuly.', StatusCodes.CREATED, [])
     return res.status(StatusCodes.CREATED).json(response);
 });
-
 
 
 router.post("/register/basic", [registerValidationChain, authenticateToken, authorizeRoles('student')], async (req, res) => {
@@ -155,9 +154,7 @@ router.post("/register/basic", [registerValidationChain, authenticateToken, auth
     }
 
     await User.findOne({ _id: req.user._id }).updateOne({ ...req.body });
-
     const modUser = await User.findOne({ _id: req.user._id });
-
     const response = responseJson(true, modUser, 'User basic detail completed.', StatusCodes.OK, [])
     return res.status(StatusCodes.OK).json(response);
 });

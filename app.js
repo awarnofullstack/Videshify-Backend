@@ -8,6 +8,8 @@ const notFoundMiddleware = require("./middleware/notFound");
 const errorHandlerMiddleware = require("./middleware/errorHandler");
 
 const app = express();
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -18,7 +20,6 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '500mb' }));
 
 
 require("dotenv").config({

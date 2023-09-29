@@ -135,8 +135,8 @@ const StudentKeyContactSchema = new Schema({
     },
 });
 
-module.exports = mongoose.model('Student', StudentSchema);
 
 const KeyContact = mongoose.model('KeyContact', StudentKeyContactSchema);
 
-module.exports = { KeyContact };
+const Student = mongoose.model('Student', StudentSchema);
+module.exports = { Student, KeyContact };

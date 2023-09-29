@@ -27,15 +27,13 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
     const resetToken = crypto.randomBytes(20).toString('hex');
 
-    console.log(process.env.DB_URL);
-    const isUser = await User.findOne({ email : "abhisheksinghk30@gmail.com" });
+    const isUser = await User.findOne({ email });
 
-    console.log(isUser);
     if (!isUser) {
         throw new Error('Email address is not valid.');
     }
 
-    isUser.updateOne({
+    await isUser.updateOne({
         resetToken,
         resetTokenExpiry: Date.now(),
     })
