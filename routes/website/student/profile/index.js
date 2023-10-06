@@ -2,15 +2,15 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
-const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
+const { authenticateToken, authorizeRoles } = require("../../../../middleware/authHandler");
 
 
-const responseJson = require("../../../utils/responseJson");
-const User = require("../../../models/User");
-const { Student } = require("../../../models/Student");
-const ResetToken = require("../../../models/ResetToken");
-const generate = require("../../../utils/generateOTP");
-const { sendMailAsync } = require("../../../utils/emailTransport");
+const responseJson = require("../../../../utils/responseJson");
+const User = require("../../../../models/User");
+const Student = require("../../../../models/Student");
+const ResetToken = require("../../../../models/ResetToken");
+const generate = require("../../../../utils/generateOTP");
+const { sendMailAsync } = require("../../../../utils/emailTransport");
 
 const router = express.Router();
 

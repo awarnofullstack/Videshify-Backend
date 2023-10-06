@@ -7,7 +7,7 @@ const { authenticateToken, authorizeRoles } = require("../../../middleware/authH
 
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
-const { Student } = require("../../../models/Student");
+const Student = require("../../../models/Student");
 const ResetToken = require("../../../models/ResetToken");
 const generate = require("../../../utils/generateOTP");
 const { sendMailAsync } = require("../../../utils/emailTransport");
@@ -48,11 +48,11 @@ router.post("/login", loginValidationChain, async (req, res) => {
     }
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({email});
+
     if (!user || user.role !== 'student') {
         throw new Error("Invalid credentials or no user exist.");
     }
-
     const verifyPassword = await bcrypt.compare(password, user.password);
 
     if (!verifyPassword) {
@@ -115,11 +115,7 @@ router.post("/otp/verification", verificationOtpValidationChain, async (req, res
 
     const { email, otp } = req.body;
 
-
-    console.log(email);
     const isUser = await User.findOne({ email });
-
-    console.log(isUser);
 
     if (isUser) {
         throw new Error('Account already exist.');

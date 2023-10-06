@@ -1,11 +1,13 @@
 const jwt = require('jsonwebtoken');
-const {StatusCodes} = require("http-status-codes")
+const { StatusCodes } = require("http-status-codes")
+const responseJson = require("../utils/responseJson");
 
 function authenticateToken(req, res, next) {
     let token = req.header('Authorization');
 
     if (!token) {
-        return res.status(401).json({ message: 'Access denied. Token missing.' });
+        const response = responseJson(false, null, 'Access denied. Token missing.', StatusCodes.UNAUTHORIZED);
+        return res.status(200).json(response);
     }
 
     token = token.replace("Bearer ", "");
@@ -13,7 +15,8 @@ function authenticateToken(req, res, next) {
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
         if (err) {
             console.log(err);
-            return res.status(403).json({ message: 'Invalid token.' });
+            const response = responseJson(false, null, 'Invalid token.', StatusCodes.UNAUTHORIZED);
+            return res.status(200).json(response);
         }
 
         req.user = user.user; // Store the user data from the token
@@ -28,7 +31,8 @@ function authorizeRoles(roles) {
         if (roles.includes(userRole)) {
             next();
         } else {
-            res.status(403).json({ message: 'Access denied. Insufficient role.' });
+            const response = responseJson(false, null, 'Access denied. Insufficient role.', StatusCodes.UNAUTHORIZED);
+            res.status(200).json(response);
         }
     };
 }
@@ -39,7 +43,8 @@ function authorizeApproved(req, res, next) {
     if (approved) {
         next();
     } else {
-        return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Account is in pending status.' });
+        const response = responseJson(false,null,'Account is in pending status.',StatusCodes.UNAUTHORIZED);
+        return res.status(StatusCodes.OK).json(response);
     }
 }
 

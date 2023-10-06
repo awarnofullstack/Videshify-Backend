@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const {authenticateToken, authorizeRoles} = require("../../middleware/authHandler");
+const { authenticateToken, authorizeRoles } = require("../../middleware/authHandler");
 
 const auth = require("./auth/index");
-const profile = require("./profile/index");
+const profile = require("./student/index.js");
 
 router.use('/auth', auth);
-router.use('/profile',[authenticateToken, authorizeRoles('student')], profile);
+router.use('/student', [authenticateToken, authorizeRoles('student')], profile);
 
 module.exports = router;
