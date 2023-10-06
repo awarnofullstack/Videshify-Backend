@@ -66,6 +66,12 @@ router.post("/register", registerValidationChain, async (req, res) => {
         return res.status(StatusCodes.OK).json(response);
     }
 
+    const isUserExist = await User.findOne({ email: req.body.email });
+
+    if (isUserExist) {
+        throw new Error("Email address already used.");
+    }
+
     const { password } = req.body;
 
     req.body.password = await bcrypt.hash(password, 10);

@@ -63,4 +63,4 @@ const StudentWorkExperienceActivitySchema = Schema({
 );
 
 
-module.exports = mongoose.model('StudentTesting', StudentWorkExperienceActivitySchema);
+module.exports = mongoose.model('StudentActivity', StudentWorkExperienceActivitySchema);

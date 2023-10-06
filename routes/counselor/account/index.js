@@ -9,7 +9,11 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
 
-    const data = await Counselor.findOne({ user_id: req.user.id }).populate('user_id').lean();
+    const UserUnselectFieds = { createdAt: 0, updatedAt: 0, resetTokenExpiry: 0, resetToken: 0, __v: 0, approved: 0 }
+
+    const data = await Counselor.findOne({ user_id: req.user.id })
+        .populate({ path: 'user_id', select: UserUnselectFieds })
+        .select({ createdAt: 0, updatedAt: 0, __v: 0 }).lean();
 
     if (!data) {
         const response = responseJson(false, data, 'Your profile is not completed.', StatusCodes.OK, []);
@@ -27,13 +31,13 @@ router.post('/complete', async (req, res) => {
     body.user_id = req.user.id
 
     if (!counselorRef) {
-        await Counselor.create(body);
-        const response = responseJson(true, {}, 'Profile Completed', StatusCodes.CREATED, []);
+        const createdProfile = await Counselor.create(body);
+        const response = responseJson(true, createdProfile, 'Profile Completed', StatusCodes.CREATED, []);
         return res.status(StatusCodes.CREATED).json(response);
     }
 
     await counselorRef.updateOne(body);
-    const response = responseJson(true, {}, 'Profile Completed', StatusCodes.OK, []);
+    const response = responseJson(true, counselorRef, 'Profile Updated', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
