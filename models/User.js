@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2")
 const jwt = require("jsonwebtoken");
+const Image = require("./Image");
 
 const UserSchema = new mongoose.Schema(
   {
@@ -59,7 +60,7 @@ UserSchema.methods.signJWT = function () {
   }
 
   return jwt.sign({ user }, process.env.SECRET_KEY, {
-    expiresIn: '1h',
+    expiresIn: '1d',
   });
 }
 
@@ -92,6 +93,14 @@ UserSchema.set('toJSON', { virtuals: true });
 UserSchema.virtual('name').get(function () {
   return this.first_name + " " + this.last_name;
 })
+
+UserSchema.virtual('profile', {
+  ref: 'Image',
+  localField: '_id',
+  foreignField: 'entity_id', 
+  justOne: true,
+  options: { entity: 'User' },
+});
 
 
 module.exports = mongoose.model("User", UserSchema);

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("express-async-errors");
+const fileUpload = require('express-fileupload');
 
 // Error Handler & Not Found Handler Middleware
 const notFoundMiddleware = require("./middleware/notFound");
@@ -20,6 +21,13 @@ app.use(
   })
 );
 
+app.use('/static', express.static('/storage/uploads'));
+
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+  useTempFiles: true,
+  tempFileDir: __dirname + '/storage/temp'
+}))
 
 
 require("dotenv").config({
@@ -32,7 +40,7 @@ app.get("/", (req, res) => {
 
 app.get('/reset-password/:token', (req, res) => {
   const token = req.params.token;
-  return res.render('reset-password', { token, errorMessage : null });
+  return res.render('reset-password', { token, errorMessage: null });
 });
 
 /*
@@ -92,7 +100,6 @@ app.use("/api", StudentRouter);
 -------------------- Web Routes & Controller ----------------------
 *****************************************************************************************
 */
-
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);
