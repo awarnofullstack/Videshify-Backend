@@ -21,7 +21,7 @@ app.use(
   })
 );
 
-app.use('/static', express.static('/storage/uploads'));
+app.use('/static', express.static('storage/uploads/'));
 
 app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 },

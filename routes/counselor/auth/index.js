@@ -46,7 +46,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
     }
     const token = user.signJWT();
 
-    const hasProfile = await Counselor.findOne({ user_id: user.id }).countDocuments();
+    const hasProfile = await Counselor.findOne({ user_id: user._id }).countDocuments();
 
     const eligibility = {
         isApproved: user.approved,

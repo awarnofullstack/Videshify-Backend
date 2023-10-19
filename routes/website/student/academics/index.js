@@ -2,11 +2,11 @@ const express = require("express");
 const path = require("path");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
-const { baseUpload } = require("../../../../storage/baseUploads");
 
 const router = express.Router();
 
 const responseJson = require("../../../../utils/responseJson");
+const { makeMoved } = require("../../../../utils/fileUpload");
 
 const AcademicSchool = require("../../../../models/StudentSchoolAcademic")
 const AcademicCreative = require("../../../../models/StudentCreativePortfolioAcademic")
@@ -71,10 +71,7 @@ router.post("/academic-school", async (req, res) => {
     const id = req.user._id;
 
     if (req.files.transcript) {
-        const files = req.files.transcript;
-        const uploadPath = baseUpload + files.name;
-        files.mv(uploadPath)
-        req.body.transcript = files.name;
+        req.body.transcript = makeMoved(req.files.transcript);
     }
 
     const academicSchool = await AcademicSchool.create({ student_id: id, ...req.body });
@@ -89,6 +86,10 @@ router.put("/academic-school/:id", async (req, res) => {
 
     if (!academicSchool) {
         throw new Error('You are trying to update non-existing document.');
+    }
+
+    if (req.files.transcript) {
+        req.body.transcript = makeMoved(req.files.transcript);
     }
     await academicSchool.updateOne({ ...req.body });
 
