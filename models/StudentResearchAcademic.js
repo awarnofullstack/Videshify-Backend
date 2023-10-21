@@ -50,4 +50,15 @@ const AcademicResearchSchema = Schema({
 );
 
 
+AcademicResearchSchema.set('toJSON', { virtuals: true });
+
+AcademicResearchSchema.virtual('researchPaperUrl').get(function () {
+    if (this.research_paper) {
+        return process.env.BASE_URL + '/static/' + this.research_paper;
+    }
+    return null;
+});
+
+
+
 module.exports = mongoose.model('AcademicResearch', AcademicResearchSchema);

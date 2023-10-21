@@ -38,4 +38,14 @@ const AcademicCreativePortfolioSchema = Schema({
 );
 
 
+AcademicCreativePortfolioSchema.set('toJSON', { virtuals: true });
+
+AcademicCreativePortfolioSchema.virtual('docUrl').get(function () {
+    if (this.doc) {
+        return process.env.BASE_URL + '/static/' + this.doc;
+    }
+    return null;
+});
+
+
 module.exports = mongoose.model('AcademicCreative', AcademicCreativePortfolioSchema);
