@@ -36,11 +36,10 @@ router.get('/all', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
 
-    const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id').lean();
+    const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id');
 
     if (!isStudentProfile) {
         const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
@@ -93,7 +92,6 @@ router.get('/:id/activities', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-
 router.get('/:id/careers', async (req, res) => {
     const { id } = req.params;
 
@@ -106,7 +104,6 @@ router.get('/:id/careers', async (req, res) => {
 });
 
 // add task in student 
-
 
 
 // remove student from list

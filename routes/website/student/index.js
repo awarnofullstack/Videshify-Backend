@@ -11,7 +11,7 @@ const router = express.Router();
 router.use("/profile", profile);
 router.use("/academic", academic);
 router.use("/testing", testing);
-router.use("/career", career);
+router.use("/major-career", career);
 router.use("/activity", activity);
 
 

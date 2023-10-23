@@ -102,5 +102,7 @@ const StudentSchema = new Schema({
 );
 
 
+StudentSchema.set('toJSON', { virtuals: true });
+
 const Student = mongoose.model('Student', StudentSchema);
 module.exports = Student;
