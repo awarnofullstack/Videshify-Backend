@@ -7,11 +7,11 @@ const StudentWorkExperienceActivitySchema = Schema({
         ref: 'User',
         required: true
     },
-    activity_title: {
+    internship_title: {
         type: String,
         required: true
     },
-    category: {
+    industry: {
         type: String,
         required: true
     },
@@ -27,35 +27,18 @@ const StudentWorkExperienceActivitySchema = Schema({
         type: String,
         required: true
     },
-    time_of_participation: {
+    program_provider: {
+        type: String,
+        required: true
+    },
+    position_title: {
+        type: String,
+        required: true
+    },
+    application_deadline: {
         type: Date,
         required: true
     },
-    position_leadership: {
-        type: String,
-        required: true
-    },
-    school_year: {
-        type: Number,
-        required: true
-    },
-    weeks_per_year: {
-        type: Number,
-        required: true
-    },
-    hours_per_week: {
-        type: Number,
-        required: true
-    },
-    description: {
-        type: Number,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['planned', 'progress', 'completed'],
-        default: 'planned',
-    }
 },
     {
         timestamps: true,
@@ -63,4 +46,4 @@ const StudentWorkExperienceActivitySchema = Schema({
 );
 
 
-module.exports = mongoose.model('StudentActivity', StudentWorkExperienceActivitySchema);
+module.exports = mongoose.model('StudentWorkExperienceActivity', StudentWorkExperienceActivitySchema);

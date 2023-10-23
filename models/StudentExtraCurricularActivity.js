@@ -48,7 +48,7 @@ const StudentActivitySchema = Schema({
         required: true
     },
     description: {
-        type: Number,
+        type: String,
         required: true
     },
     status : {
@@ -63,4 +63,4 @@ const StudentActivitySchema = Schema({
 );
 
 
-module.exports = mongoose.model('StudentTesting', StudentActivitySchema);
+module.exports = mongoose.model('StudentCurricularActivity', StudentActivitySchema);
