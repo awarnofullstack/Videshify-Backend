@@ -71,9 +71,6 @@ const StudentCounselorSchema = new Schema({
         default: null,
         required: false
     },
-    past_projects:{
-        
-    },
     bank_account_details: {
         bank_name: {
             type: String,

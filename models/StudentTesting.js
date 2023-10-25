@@ -28,6 +28,14 @@ const StudentTestingSchema = Schema({
         enum: ['official', 'mock'],
         required: true
     },
+    total_marks: {
+        type: Number,
+        required: true
+    },
+    target_marks: {
+        type: Number,
+        required: true
+    },
     name: {
         type: String,
         required: true

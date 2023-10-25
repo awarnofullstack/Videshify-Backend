@@ -1,11 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+const mongoosePaginate = require("mongoose-paginate-v2")
+
 const CounselorSchema = new Schema({
     user_id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    age: {
+        type: Number,
+        required: false
     },
     gender: {
         type: String,
@@ -53,6 +59,10 @@ const CounselorSchema = new Schema({
         type: String,
         required: true
     },
+    origin_country: {
+        type: String,
+        required: true
+    },
     services_provided: {
         type: Array,
         required: false,
@@ -81,5 +91,7 @@ const CounselorSchema = new Schema({
     {
         timestamps: true
     });
+
+CounselorSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Counselor', CounselorSchema);
