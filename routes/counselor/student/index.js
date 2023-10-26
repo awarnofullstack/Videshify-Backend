@@ -14,6 +14,10 @@ const StudentInterest = require("../../../models/StudentInterestExploreCareer");
 const StudentNetworking = require("../../../models/StudentNetworkingCareer");
 const StudentResearchPrep = require("../../../models/StudentResearchPrepCareer");
 
+
+const StudentCurricularActivity = require("../../../models/StudentExtraCurricularActivity")
+const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity")
+
 const router = express.Router();
 
 router.get('/all', async (req, res) => {
@@ -81,14 +85,10 @@ router.get('/:id/testing', async (req, res) => {
 router.get('/:id/activities', async (req, res) => {
     const { id } = req.params;
 
-    const isStudentActivities = await StudentActivity.findOne({ student_id: id }).lean();
+    const curricularActivity = await StudentCurricularActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
+    const workExperienceActivity = await StudentWorkExperienceActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
 
-    if (!isStudentActivities) {
-        const response = responseJson(false, {}, 'No student activities found.', StatusCodes.NOT_FOUND);
-        return res.status(StatusCodes.NOT_FOUND).json(response);
-    };
-
-    const response = responseJson(true, isStudentActivities, '', 200);
+    const response = responseJson(true, {curricularActivity,workExperienceActivity}, '', 200);
     return res.status(StatusCodes.OK).json(response);
 });
 
