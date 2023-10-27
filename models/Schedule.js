@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema
 
+const mongoosePaginate = require("mongoose-paginate-v2")
 
 
 const ScheduleSchema = new Schema({
@@ -14,10 +15,11 @@ const ScheduleSchema = new Schema({
     },
     invite_link: {
         type: String,
-        required: true
     },
     assigned_to: {
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref: 'CounselorMember',
+        required: false
     },
     start_time: {
         type: Date,
@@ -29,7 +31,7 @@ const ScheduleSchema = new Schema({
     },
     duration: {
         type: String,
-        required: false
+        required: true
     },
     status: {
         type: String,
@@ -45,6 +47,7 @@ const ScheduleSchema = new Schema({
 
 
 
+ScheduleSchema.plugin(mongoosePaginate);
 
 
 module.exports = mongoose.model('Schedule', ScheduleSchema);

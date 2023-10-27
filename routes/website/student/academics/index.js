@@ -66,7 +66,6 @@ router.get("/academic-school", async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-
 router.post("/academic-school",createSchoolAcademicValidationChain, async (req, res) => {
     const errors = validationResult(req);
 
