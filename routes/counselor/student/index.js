@@ -7,6 +7,8 @@ const Student = require("../../../models/Student");
 const Counselor = require("../../../models/Counselor");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
 const StudentSchoolAcademic = require("../../../models/StudentSchoolAcademic");
+const StudentCreativePortfolioAcademic = require("../../../models/StudentCreativePortfolioAcademic");
+const StudentResearchAcademic = require("../../../models/StudentResearchAcademic");
 const StudentTesting = require("../../../models/StudentTesting");
 const StudentActivity = require("../../../models/StudentWorkExperienceActivity");
 
@@ -57,14 +59,11 @@ router.get('/:id/profile', async (req, res) => {
 router.get('/:id/academics', async (req, res) => {
     const { id } = req.params;
 
-    const isStudentAcademics = await StudentSchoolAcademic.findOne({ student_id: id }).lean();
+    const academicSchool = await StudentSchoolAcademic.find({ student_id: id }).sort({ _id: -1 });
+    const academicCreative = await StudentCreativePortfolioAcademic.find({ student_id: id }).sort({ _id: -1 });
+    const academicResearch = await StudentResearchAcademic.find({ student_id: id }).sort({ _id: -1 });
 
-    if (!isStudentAcademics) {
-        const response = responseJson(false, {}, 'No student academics found.', StatusCodes.NOT_FOUND);
-        return res.status(StatusCodes.NOT_FOUND).json(response);
-    };
-
-    const response = responseJson(true, isStudentAcademics, '', 200);
+    const response = responseJson(true, { academicSchool, academicResearch, academicCreative }, '', 200);
     return res.status(StatusCodes.OK).json(response);
 });
 
@@ -88,7 +87,7 @@ router.get('/:id/activities', async (req, res) => {
     const curricularActivity = await StudentCurricularActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
     const workExperienceActivity = await StudentWorkExperienceActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
 
-    const response = responseJson(true, {curricularActivity,workExperienceActivity}, '', 200);
+    const response = responseJson(true, { curricularActivity, workExperienceActivity }, '', 200);
     return res.status(StatusCodes.OK).json(response);
 });
 

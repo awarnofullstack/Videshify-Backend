@@ -50,9 +50,9 @@ router.get("/", async (req, res) => {
 
     const id = req.user._id;
 
-    const academicSchool = await AcademicSchool.find({ student_id: id }).sort({ _id: -1 }).lean();
-    const academicCreative = await AcademicCreative.find({ student_id: id }).sort({ _id: -1 }).lean();
-    const academicResearch = await AcademicResearch.find({ student_id: id }).sort({ _id: -1 }).lean();
+    const academicSchool = await AcademicSchool.find({ student_id: id }).sort({ _id: -1 });
+    const academicCreative = await AcademicCreative.find({ student_id: id }).sort({ _id: -1 });
+    const academicResearch = await AcademicResearch.find({ student_id: id }).sort({ _id: -1 });
 
     const response = responseJson(true, { academicSchool, academicCreative, academicResearch }, '', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
