@@ -13,6 +13,11 @@ const RespondSchema = new Schema({
         type: Number,
         required: false
     },
+    attachment: {
+        type: String,
+        default: '',
+        required: false
+    },
     isQuote: {
         type: Boolean,
         require: false,
@@ -20,6 +25,7 @@ const RespondSchema = new Schema({
     },
     service_name: {
         type: String,
+        default: '',
         required: false
     },
     service_price: {
@@ -30,9 +36,19 @@ const RespondSchema = new Schema({
         type: Number,
         required: false
     },
+    sender: {
+        type: String,
+        enum: ['counselor', 'student'],
+        required: true
+    },
     start_time: {
         type: Date,
+        default: null,
+        required: false
     }
+}, {
+    timestamps: true,
+    versionKey: false
 });
 
 const InquirySchema = new Schema({
@@ -48,6 +64,11 @@ const InquirySchema = new Schema({
     },
     responds: {
         type: [RespondSchema]
+    },
+    status: {
+        type: String,
+        enum: ['opened', 'closed'],
+        default: 'opened'
     }
 },
     {

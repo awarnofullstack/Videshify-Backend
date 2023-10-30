@@ -7,15 +7,14 @@ const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
 
 const Inquiry = require("../../../models/Inquiry");
+const Counselor = require("../../../models/Counselor");
 const { makeMoved } = require("../../../utils/fileUpload");
 
 
 const ObjectId = mongoose.Types.ObjectId;
 const createInquiryQuoteValidationChain = [
     body('message').notEmpty().trim().toLowerCase().withMessage('message is required field.'),
-    body('isQuote').notEmpty().withMessage('isQuote is required field'),
-    body('counselor').trim(),
-    body('services').notEmpty().withMessage('services is required field.'),
+    body('counselor').notEmpty().trim().withMessage('counselor id is required field.')
 ];
 
 
@@ -24,7 +23,7 @@ router.get("/", async (req, res) => {
     const options = {
         limit,
         page,
-        sort: { _id: -1 },
+        sort: { _id: -1 }
     }
 
     const inquiries = await Inquiry.paginate({ student: req.user._id }, options);
@@ -34,11 +33,12 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) });
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).lean();
 
-    if(!inquiry){
+    if (!inquiry) {
         throw new Error("Invalid document id, no record found.");
     }
+
     const response = responseJson(true, inquiry, '', 200);
     return res.status(200).json(response);
 });
@@ -51,35 +51,42 @@ router.post("/", createInquiryQuoteValidationChain, async (req, res) => {
         return res.status(StatusCodes.OK).json(response);
     }
 
-    const id = req.user._id;
+    const { counselor, message } = req.body;
 
-    if (req.files.profile) {
-        req.body.profile = makeMoved(req.files.profile);
+    const counselorDoc = await Counselor.findOne({ user_id: counselor });
+
+    if (!counselorDoc) {
+        throw new Error('Invalid Counselor ID try again.');
     }
 
-    const counselorMember = await CounselorMember.create({ counselor: id, ...req.body });
-    const response = responseJson(true, counselorMember, 'A new member added.', StatusCodes.OK, []);
+    const id = req.user._id;
+
+    const respond = { _id: new ObjectId(), message, sender: 'student' }
+
+    const inquiryCreate = new Inquiry({ student: id, counselor });
+    inquiryCreate.responds.push(respond);
+    await inquiryCreate.save();
+
+    const response = responseJson(true, inquiryCreate, 'Inquiry sent.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
-// router.put("/:id", async (req, res) => {
-//     const { id } = req.params;
+router.put("/:id", async (req, res) => {
+    const { id } = req.params;
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) });
 
-//     const counselorMember = await CounselorMember.findOne({ _id: id });
+    if (!inquiry) {
+        throw new Error("Invalid document id, no record found.");
+    }
 
-//     if (!counselorMember) {
-//         throw new Error('You are trying to update non-existing document.');
-//     }
 
-//     if (req.files.profile) {
-//         req.body.profile = makeMoved(req.files.profile);
-//     }
+    const newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'student' }
 
-//     const updatedMember = await CounselorMember.findByIdAndUpdate(id, { $set: { ...req.body } }, { new: true });
+    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $push: { responds: newRespond } }, { new: true });
 
-//     const response = responseJson(true, updatedMember, 'Member profile updated successfuly.', StatusCodes.OK, []);
-//     return res.status(StatusCodes.OK).json(response);
-// });
+    const response = responseJson(true, inquiryUpdate, 'Replied to inquiry.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
 
 // router.delete("/:id", async (req, res) => {
 //     const { id } = req.params;
