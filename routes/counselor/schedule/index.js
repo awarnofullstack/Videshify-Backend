@@ -10,7 +10,8 @@ const CounselorMember = require("../../../models/CounselorMember");
 const Schedule = require("../../../models/Schedule");
 
 const { makeMoved } = require("../../../utils/fileUpload");
-
+const { createMeeting } = require("../../../utils/createMeeting");
+const { genZoomToken } = require("../../../middleware/zoomAuthToken");
 
 const createScheduleValidationChain = [
     body('name').notEmpty().trim().toLowerCase().withMessage('name is required field.'),
@@ -31,6 +32,7 @@ router.get("/", async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
     const members = await Schedule.paginate({ counselor: req.user._id }, options);
@@ -45,6 +47,7 @@ router.get("/past", async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
     const query = { counselor: req.user._id };
@@ -54,6 +57,7 @@ router.get("/past", async (req, res) => {
     const response = responseJson(true, members, '', 200);
     return res.status(200).json(response);
 });
+
 router.get("/upcoming", async (req, res) => {
 
     const { limit, page } = req.query;
@@ -61,6 +65,7 @@ router.get("/upcoming", async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
     const query = { counselor: req.user._id };
@@ -71,28 +76,13 @@ router.get("/upcoming", async (req, res) => {
     return res.status(200).json(response);
 });
 
-
-router.get("/:id", async (req, res) => {
+router.get("/:id/show", async (req, res) => {
     const { id } = req.params;
-    const schedule = await Schedule.findOne({ _id: id });
+    const schedule = await Schedule.findOne({ _id: id }).populate({ path: 'assigned_to', select: ['name', 'profile', 'email'] });
     const response = responseJson(true, schedule, '', 200);
     return res.status(200).json(response);
 });
 
-router.post("/", createScheduleValidationChain, async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
-        return res.status(StatusCodes.OK).json(response);
-    }
-
-    const id = req.user._id;
-
-    const counselorMember = await CounselorMember.create({ counselor: id, ...req.body });
-    const response = responseJson(true, counselorMember, 'A new member added.', StatusCodes.OK, []);
-    return res.status(StatusCodes.OK).json(response);
-});
 
 router.put("/:id", async (req, res) => {
     const { id } = req.params;
@@ -126,8 +116,7 @@ router.delete("/:id", async (req, res) => {
 
 
 // assign member to schedule 
-
-router.put("/:id/assign", assignMemberValidationChain, async (req, res) => {
+router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req, res) => {
 
     const errors = validationResult(req);
 
@@ -149,7 +138,24 @@ router.put("/:id/assign", assignMemberValidationChain, async (req, res) => {
         throw new Error('Member id is not valid.');
     }
 
-    const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { assigned_to: req.body.member_id } }, { new: true });
+    const { duration, topic, start_time } = schedule
+
+    const createLink = await createMeeting({ duration, topic, start_time, token: req.zoom.access_token });
+
+    console.log("createLink", createLink);
+
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id,
+        {
+            $set: {
+                assigned_to: req.body.member_id,
+                invite_link: createLink.join_url,
+                start_time: createLink.start_time,
+                duration: createLink.duration,
+                meeting_id: createLink.id
+            }
+        },
+        { new: true }
+    );
 
     const response = responseJson(true, updatedSchedule, 'Member assigned to schedule successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);

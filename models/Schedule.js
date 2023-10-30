@@ -13,7 +13,14 @@ const ScheduleSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
+    topic: {
+        type: String,
+        required: true
+    },
     invite_link: {
+        type: String,
+    },
+    meeting_id: {
         type: String,
     },
     assigned_to: {
@@ -25,12 +32,13 @@ const ScheduleSchema = new Schema({
         type: Date,
         required: true
     },
-    end_time: {
-        type: Date,
-        required: true
-    },
     duration: {
         type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['service', 'quote'],
         required: true
     },
     status: {
@@ -41,6 +49,12 @@ const ScheduleSchema = new Schema({
     description: {
         type: String,
         required: false
+    },
+    payment_ref: {
+        type: Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true,
+        unique: true
     }
 
 }, { timestamps: true, versionKey: false });

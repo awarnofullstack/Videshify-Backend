@@ -16,7 +16,7 @@ const RespondSchema = new Schema({
     },
     isQuote: {
         type: Boolean,
-        require: false,
+        required: false,
         default: false
     },
     service_name: {

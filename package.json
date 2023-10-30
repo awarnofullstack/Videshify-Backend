@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "set NODE_ENV=testing & nodemon app.js",
     "start": "set NODE_ENV=production & node app.js",
     "dev": "set NODE_ENV=development & nodemon app.js"
   },
   "author": "videshify",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

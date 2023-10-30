@@ -49,7 +49,7 @@ router.put("/:id", async (req, res) => {
     let newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'counselor' }
 
     if (req.body.isQuote) {
-        newRespond = { ...newRespond, ...req.body.quote }
+        newRespond = { ...newRespond, ...req.body.quote, isQuote: true }
     }
 
     inquiry.responds.push(newRespond);
