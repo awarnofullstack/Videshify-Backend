@@ -18,6 +18,7 @@ const PaymentSchema = Schema({
     },
     service: {
         type: String,
+        enum: ['consultation', 'plan purchase'],
         required: true
     },
     reference_no: {
@@ -28,8 +29,8 @@ const PaymentSchema = Schema({
     },
     note: {
         type: String,
-        required : false,
-        default : ''
+        required: false,
+        default: ''
     }
 },
     {

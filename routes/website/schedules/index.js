@@ -104,7 +104,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
 
     const createPayment = {
         amount,
-        service,
+        service : 'consultation',
         reference_no,
         user: req.user._id,
         type: 'debit',
