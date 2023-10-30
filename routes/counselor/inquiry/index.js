@@ -37,11 +37,9 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json(response);
 });
 
+
 router.put("/:id", async (req, res) => {
-
     const { id } = req.params;
-    const counselor_id = req.user._id;
-
     const inquiry = await Inquiry.findById(new ObjectId(id));
 
     if (!inquiry) {
@@ -54,25 +52,43 @@ router.put("/:id", async (req, res) => {
         newRespond = { ...newRespond, ...req.body.quote }
     }
 
-    // const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $push: { responds: newRespond } }, { new: true });
-
     inquiry.responds.push(newRespond);
     const inquiryUpdate = await inquiry.save();
+
     const response = responseJson(true, inquiryUpdate, 'Quote sent to inquiry.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
+
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 
-    const inquiry = await Inquiry.findOne({ _id: id });
+    const inquiry = await Inquiry.findOne({ _id: id, counselor: req.user._id });
 
     if (!inquiry) {
         throw new Error('You are trying to delete non-existing document.');
     }
 
     await inquiry.deleteOne();
-    const response = responseJson(true, inquiry, 'inquiry deleted successfuly.', StatusCodes.OK, []);
+    const response = responseJson(true, {}, 'Inquiry deleted successfuly.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
+
+router.delete("/:id/remove/:respond_id", async (req, res) => {
+    const { id, respond_id } = req.params;
+
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id), 'responds._id': new ObjectId(respond_id) });
+
+    if (!inquiry) {
+        throw new Error('You are trying to delete non-existing document.');
+    }
+
+    await inquiry.updateOne({
+        $pull: { task: { _id: respond_id } }
+    });
+    const response = responseJson(true, inquiry, 'Inquiry deleted successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
