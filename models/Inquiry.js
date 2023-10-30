@@ -9,10 +9,6 @@ const RespondSchema = new Schema({
         type: String,
         required: true
     },
-    amount: {
-        type: Number,
-        required: false
-    },
     attachment: {
         type: String,
         default: '',
@@ -28,7 +24,7 @@ const RespondSchema = new Schema({
         default: '',
         required: false
     },
-    service_price: {
+    amount: {
         type: Number,
         required: false
     },

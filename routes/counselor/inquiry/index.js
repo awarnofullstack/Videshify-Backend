@@ -1,21 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
-const { body, validationResult } = require("express-validator");
 
 const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
 
 const Inquiry = require("../../../models/Inquiry");
-const Counselor = require("../../../models/Counselor");
 const { makeMoved } = require("../../../utils/fileUpload");
 
 
 const ObjectId = mongoose.Types.ObjectId;
-const createInquiryQuoteValidationChain = [
-    body('message').notEmpty().trim().toLowerCase().withMessage('message is required field.'),
-    body('counselor').notEmpty().trim().withMessage('counselor id is required field.')
-];
 
 
 router.get("/", async (req, res) => {
@@ -44,20 +38,27 @@ router.get("/:id", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
+
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) });
+    const counselor_id = req.user._id;
+
+    const inquiry = await Inquiry.findById(new ObjectId(id));
 
     if (!inquiry) {
         throw new Error("No inquiry exist with this inquiry id.");
     }
 
-    
+    let newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'counselor' }
 
-    const newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'counselor' }
+    if (req.body.isQuote) {
+        newRespond = { ...newRespond, ...req.body.quote }
+    }
 
-    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $push: { responds: newRespond } }, { new: true });
+    // const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $push: { responds: newRespond } }, { new: true });
 
-    const response = responseJson(true, inquiryUpdate, 'Replied to inquiry.', StatusCodes.OK, []);
+    inquiry.responds.push(newRespond);
+    const inquiryUpdate = await inquiry.save();
+    const response = responseJson(true, inquiryUpdate, 'Quote sent to inquiry.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
