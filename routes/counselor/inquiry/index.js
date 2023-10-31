@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).lean();
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).populate({ path: 'student', select: ['first_name','last_name','email','phone'] });
 
     if (!inquiry) {
         throw new Error("Invalid document id, no record found.");
