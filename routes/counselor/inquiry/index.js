@@ -17,7 +17,9 @@ router.get("/", async (req, res) => {
     const options = {
         limit,
         page,
-        sort: { _id: -1 }
+        select: { responds: 0 },
+        sort: { _id: -1 },
+        populate: ['student']
     }
 
     const inquiries = await Inquiry.paginate({ counselor: req.user._id }, options);

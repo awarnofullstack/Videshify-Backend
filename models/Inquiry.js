@@ -61,6 +61,9 @@ const InquirySchema = new Schema({
     responds: {
         type: [RespondSchema]
     },
+    category: {
+        type: String,
+    },
     status: {
         type: String,
         enum: ['opened', 'closed'],
