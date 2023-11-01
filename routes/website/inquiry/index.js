@@ -23,6 +23,7 @@ router.get("/", async (req, res) => {
     const options = {
         limit,
         page,
+        populate:[{path:'counselor', select: 'first_name last_name'}],
         sort: { _id: -1 }
     }
 
@@ -33,7 +34,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).lean();
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).populate('counselor', 'first_name last_name');
 
     if (!inquiry) {
         throw new Error("Invalid document id, no record found.");
