@@ -26,6 +26,7 @@ router.get("/", async (req, res) => {
     const options = {
         limit,
         page,
+        select: { responds: 0 },
         populate: [{ path: 'createdBy', select: 'first_name last_name' }],
         sort: { _id: -1 }
     }
