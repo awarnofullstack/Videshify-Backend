@@ -47,15 +47,16 @@ router.get("/:id", async (req, res) => {
 
 router.get("/:id/quote", async (req, res) => {
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ 'responds._id': new ObjectId(id) }).populate('counselor', 'first_name last_name');
+    const inquiry = await Inquiry.findOne({ 'responds._id': new ObjectId(id) });
 
     if (!inquiry) {
         throw new Error("Invalid document id, no record found.");
     }
 
     const quote = inquiry.responds.id(id);
+    const counselor = await Counselor.findOne({user_id : inquiry.counselor}).select('agency_name').lean();
 
-    const response = responseJson(true, quote, '', 200);
+    const response = responseJson(true, {quote, booking_with: counselor}, '', 200);
     return res.status(200).json(response);
 });
 
