@@ -58,7 +58,7 @@ router.post("/", createTicketValidationChain, validate, async (req, res) => {
     const { message } = req.body;
     const respond = { _id: new ObjectId(), message, sender: 'user' };
 
-    if (req.files.attachment) {
+    if (req.files?.attachment) {
         respond.attachment = makeMoved(req.files.attachment);
     }
 
@@ -81,7 +81,7 @@ router.put("/:id", async (req, res) => {
 
     const newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'user' }
 
-    if (req.files.attachment) {
+    if (req.files?.attachment) {
         newRespond.attachment = makeMoved(req.files.attachment);
     }
 

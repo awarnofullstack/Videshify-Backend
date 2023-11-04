@@ -49,7 +49,7 @@ router.post("/", createCounselorMemberValidationChain, async (req, res) => {
 
     const id = req.user._id;
 
-    if (req.files.profile) {
+    if (req.files?.profile) {
         req.body.profile = makeMoved(req.files.profile);
     }
 
@@ -67,7 +67,7 @@ router.put("/:id", async (req, res) => {
         throw new Error('You are trying to update non-existing document.');
     }
 
-    if (req.files.profile) {
+    if (req.files?.profile) {
         req.body.profile = makeMoved(req.files.profile);
     }
 

@@ -55,12 +55,12 @@ router.post("/", [createBlogValidationChain, validate], async (req, res) => {
         throw new Error('Blog title already used.');
     }
 
-    if (req.files.primary_image) {
+    if (req.files?.primary_image) {
         const pathname = makeMoved(req.files.primary_image);
         req.body.primary_image = pathname;
     }
 
-    if (req.files.secondary_image) {
+    if (req.files?.secondary_image) {
         const pathname = makeMoved(req.files.secondary_image);
         req.body.secondary_image = pathname;
     }
@@ -85,12 +85,12 @@ router.put("/:id", async (req, res) => {
         throw new Error('Blog title already used.');
     }
 
-    if (req.files.primary_image) {
+    if (req.files?.primary_image) {
         const pathname = makeMoved(req.files.primary_image);
         req.body.primary_image = pathname;
     }
 
-    if (req.files.secondary_image) {
+    if (req.files?.secondary_image) {
         const pathname = makeMoved(req.files.secondary_image);
         req.body.secondary_image = pathname;
     }

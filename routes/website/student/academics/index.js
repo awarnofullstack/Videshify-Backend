@@ -76,7 +76,7 @@ router.post("/academic-school",createSchoolAcademicValidationChain, async (req, 
 
     const id = req.user._id;
 
-    if (req.files.transcript) {
+    if (req.files?.transcript) {
         req.body.transcript = makeMoved(req.files.transcript);
     }
 
@@ -94,7 +94,7 @@ router.put("/academic-school/:id", async (req, res) => {
         throw new Error('You are trying to update non-existing document.');
     }
 
-    if (req.files.transcript) {
+    if (req.files?.transcript) {
         req.body.transcript = makeMoved(req.files.transcript);
     }
     await academicSchool.updateOne({ ...req.body });
@@ -137,7 +137,7 @@ router.post("/academic-research", createSchoolResearchValidationChain, async (re
 
     const id = req.user._id;
 
-    if (req.files.research_paper) {
+    if (req.files?.research_paper) {
         req.body.research_paper = makeMoved(req.files.research_paper);
     }
 
@@ -155,7 +155,7 @@ router.put("/academic-research/:id", async (req, res) => {
         throw new Error('You are trying to update non-existing document.');
     }
 
-    if (req.files.research_paper) {
+    if (req.files?.research_paper) {
         req.body.research_paper = makeMoved(req.files.research_paper);
     }
 
@@ -199,7 +199,7 @@ router.post("/academic-creative", createSchoolCreativeValidationChain, async (re
 
     const id = req.user._id;
 
-    if (req.files.doc) {
+    if (req.files?.doc) {
         req.body.doc = makeMoved(req.files.doc);
     }
 
@@ -217,7 +217,7 @@ router.put("/academic-creative/:id", async (req, res) => {
         throw new Error('You are trying to update non-existing document.');
     }
 
-    if (req.files.doc) {
+    if (req.files?.doc) {
         req.body.doc = makeMoved(req.files.doc);
     }
 
