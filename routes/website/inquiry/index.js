@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
     const options = {
         limit,
         page,
-        populate:[{path:'counselor', select: 'first_name last_name'}],
+        populate: [{ path: 'counselor', select: 'first_name last_name' }],
         sort: { _id: -1 }
     }
 
@@ -43,6 +43,22 @@ router.get("/:id", async (req, res) => {
     const response = responseJson(true, inquiry, '', 200);
     return res.status(200).json(response);
 });
+
+
+router.get("/:id/quote", async (req, res) => {
+    const { id } = req.params;
+    const inquiry = await Inquiry.findOne({ 'responds._id': new ObjectId(id) }).populate('counselor', 'first_name last_name');
+
+    if (!inquiry) {
+        throw new Error("Invalid document id, no record found.");
+    }
+
+    const quote = inquiry.responds.id(id);
+
+    const response = responseJson(true, quote, '', 200);
+    return res.status(200).json(response);
+});
+
 
 router.post("/", createInquiryQuoteValidationChain, async (req, res) => {
     const errors = validationResult(req);
