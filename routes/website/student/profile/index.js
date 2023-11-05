@@ -1,42 +1,16 @@
 const express = require("express");
-const { body, validationResult } = require("express-validator");
-const { StatusCodes, ReasonPhrases } = require("http-status-codes");
-const bcrypt = require("bcrypt");
-const { authenticateToken, authorizeRoles } = require("../../../../middleware/authHandler");
+const mongoose = require("mongoose");
+const { StatusCodes } = require("http-status-codes");
 
+const { makeMoved } = require("../../../../utils/fileUpload");
 
 const responseJson = require("../../../../utils/responseJson");
-const User = require("../../../../models/User");
 const Student = require("../../../../models/Student");
-const ResetToken = require("../../../../models/ResetToken");
-const generate = require("../../../../utils/generateOTP");
 const { sendMailAsync } = require("../../../../utils/emailTransport");
 
 const router = express.Router();
 
-const loginValidationChain = [body('email').notEmpty().isEmail().trim(),
-body('password').notEmpty().withMessage('Password is required field.')
-    .isLength({ min: 8 })
-    .withMessage('Password should have atleast 8 characters.')];
-
-
-const registerEmailValidationChain = [
-    body('email').notEmpty().isEmail().toLowerCase().trim().withMessage('Email is required field.'),
-];
-
-const verificationOtpValidationChain = [
-    body('email').notEmpty().isEmail().toLowerCase().trim().withMessage('Email is required field.'),
-    body('otp').notEmpty().trim().withMessage('Otp is required field.'),
-];
-
-
-const registerValidationChain = [
-    body('first_name').notEmpty().toLowerCase().withMessage('First name is required field.'),
-    body('last_name').notEmpty().toLowerCase().withMessage('Last name is required field.'),
-];
-const passwordValidationChain = [
-    body('password').notEmpty().withMessage('First name is required field.'),
-];
+const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/show", async (req, res) => {
 
@@ -52,10 +26,16 @@ router.get("/show", async (req, res) => {
 
 router.post("/complete", async (req, res) => {
 
-    const isCompleted = await Student.findOne({ user_id: req.user._id });
+    const id = req.user._id;
+    const isCompleted = await Student.findOne({ user_id: id }).lean();
+
+    if (req.files?.profile) {
+        req.body.profile = makeMoved(req.files.profile)
+    }
+
     if (isCompleted) {
-        await Student.findOne({ _id: req.user._id }).updateOne({ ...req.body });
-        const response = responseJson(true, isCompleted, 'Profile is updated.', StatusCodes.OK, [])
+        const updatedProfile = await Student.findByIdAndUpdate(isCompleted._id, { $set: { ...req.body } }, { new: true });
+        const response = responseJson(true, updatedProfile, 'Profile is updated.', StatusCodes.OK, [])
         return res.status(StatusCodes.OK).json(response);
     }
 

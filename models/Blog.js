@@ -23,11 +23,11 @@ BlogSchema.set('toJSON', {
 
 
 BlogSchema.virtual('thumbnail').get(function () {
-    return this.primary_image ? process.env.host : null;
+    return this.primary_image ? `${process.env.BASE_URL}/static/${this.primary_image}` : null;
 });
 
-BlogSchema.virtual('cover image').get(function () {
-    return this.secondary_image ? process.env.host : null;
+BlogSchema.virtual('coverImage').get(function () {
+    return this.secondary_image ? `${process.env.BASE_URL}/static/${this.secondary_image}` : null;
 });
 
 module.exports = mongoose.model('Blog', BlogSchema);

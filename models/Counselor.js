@@ -59,6 +59,7 @@ const CounselorSchema = new Schema({
         type: String,
         required: true
     },
+    profile: String,
     origin_country: {
         type: String,
         required: true
@@ -93,5 +94,13 @@ const CounselorSchema = new Schema({
     });
 
 CounselorSchema.plugin(mongoosePaginate);
+
+
+// virtuals 
+CounselorSchema.set('toJSON',{virtuals: true});
+CounselorSchema.virtual('profileUrl').get(function () {
+    return this.profile ? `${process.env.BASE_URL}/static/${this.profile}` : null;
+});
+
 
 module.exports = mongoose.model('Counselor', CounselorSchema);

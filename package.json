@@ -23,6 +23,7 @@
     "http-status-codes": "^2.2.0",
     "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.4.1",
+    "mongoose-aggregate-paginate-v2": "^1.0.6",
     "mongoose-paginate-v2": "^1.7.31",
     "nodemailer": "^6.9.4",
     "redis": "^4.6.7"

@@ -45,6 +45,9 @@ const StudentSchema = new Schema({
         type: String,
         required: false
     },
+    profile: {
+        type: String
+    },
     application: {
         application_cycle: {
             type: String,
@@ -104,5 +107,8 @@ const StudentSchema = new Schema({
 
 StudentSchema.set('toJSON', { virtuals: true });
 
-const Student = mongoose.model('Student', StudentSchema);
-module.exports = Student;
+StudentSchema.virtual('profileUrl').get(function () {
+    return this.profile ? `${process.env.BASE_URL}/static/${this.profile}` : null;
+})
+
+module.exports = mongoose.model('Student', StudentSchema);
