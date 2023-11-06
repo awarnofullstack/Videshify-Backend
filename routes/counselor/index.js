@@ -9,6 +9,7 @@ const service = require("./services");
 const schedule = require("./schedule");
 const inquiry = require("./inquiry");
 const ticket = require("./ticket");
+const commmunity = require("./community");
 
 const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../middleware/authHandler");
 
@@ -20,5 +21,6 @@ router.use('/inquiry', [authenticateToken, authorizeRoles('counselor'), authoriz
 router.use('/schedule', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], schedule);
 router.use('/service', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], service);
 router.use('/ticket', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], ticket);
+router.use('/commmunity', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], commmunity);
 
 module.exports = router;
