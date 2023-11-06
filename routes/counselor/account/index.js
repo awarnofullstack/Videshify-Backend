@@ -30,14 +30,21 @@ router.post('/complete', async (req, res) => {
     const body = req.body;
     body.user_id = req.user.id
 
+
+    const eligibility = {
+        isApproved: req.user.approved,
+        isCompleted: counselorRef ? true : false,
+    }
+
+
     if (!counselorRef) {
         const createdProfile = await Counselor.create(body);
-        const response = responseJson(true, createdProfile, 'Profile Completed', StatusCodes.CREATED, []);
+        const response = responseJson(true, { profile: createdProfile, eligibility }, 'Profile Completed', StatusCodes.CREATED, []);
         return res.status(StatusCodes.CREATED).json(response);
     }
 
     await counselorRef.updateOne(body);
-    const response = responseJson(true, counselorRef, 'Profile Updated', StatusCodes.OK, []);
+    const response = responseJson(true, { profile: counselorRef, eligibility }, 'Profile Updated', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
