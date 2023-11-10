@@ -35,7 +35,6 @@ router.post('/reset-password', resetPasswordValidationChain, async (req, res) =>
 
     await isUser.updateOne({
         resetToken,
-        resetTokenExpiry: Date.now(),
     })
 
     // Send an email with the reset link

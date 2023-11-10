@@ -34,11 +34,6 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    resetTokenExpiry: {
-      type: Date,
-      expires: '10m',
-      default: null,
-    },
   },
   {
     timestamps: true,
