@@ -8,6 +8,15 @@ const { authenticateToken, authorizeRoles } = require("../../../middleware/authH
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
 const StudentSchoolAcademic = require("../../../models/StudentSchoolAcademic");
+const Student = require("../../../models/Student");
+const StudentCreativePortfolioAcademic = require("../../../models/StudentCreativePortfolioAcademic");
+const StudentResearchAcademic = require("../../../models/StudentResearchAcademic");
+const StudentTesting = require("../../../models/StudentTesting");
+const StudentExtraCurricularActivity = require("../../../models/StudentExtraCurricularActivity");
+const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity");
+const StudentInterestExploreCareer = require("../../../models/StudentInterestExploreCareer");
+const StudentNetworkingCareer = require("../../../models/StudentNetworkingCareer");
+const StudentResearchPrepCareer = require("../../../models/StudentResearchPrepCareer");
 
 const router = express.Router();
 const registerValidationChain = [
@@ -37,29 +46,104 @@ router.post("/create", registerValidationChain, async (req, res) => {
 });
 
 router.get('/list', async (req, res) => {
-    const currentPage = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const filter = {};
+    const { limit, page } = req.query;
 
-    const entries = await User.findStudents().countDocuments(filter);
-    const totalPages = Math.ceil(entries / limit);
+    const query = { role: 'student' };
+    const options = {
+        limit,
+        page,
+        sort: { _id: -1 },
+        select: { password: 0, resetToken: 0, resetTokenExpiry: 0 }
+    }
 
-    const data = await User.findStudents(filter).limit(limit).skip((currentPage - 1) * limit);
-    const response = responseJson(true, { data, currentPage, totalPages, entries }, 'student list fetched.', StatusCodes.OK);
-    res.status(StatusCodes.OK).json(response);
+    if (req.query?.search) {
+        query.first_name = { $regex: `^${req.query.search}`, $options: 'i' };
+    }
+
+    const data = await User.paginate(query, { ...options });
+
+    if (!data) {
+        const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
+        return res.status(StatusCodes.OK).json(response);
+    }
+    const response = responseJson(true, data, '', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
 });
 
 router.get('/:id', async (req, res) => {
-    const id = req.params.id;
-    const data = await User.findStudentByID(id);
-    const response = responseJson(true, data, '', 200, []);
+    const { id } = req.params;
+
+    const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id');
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentProfile, '', 200);
     return res.status(StatusCodes.OK).json(response);
 });
 
 router.get('/:id/academics', async (req, res) => {
-    const id = req.params.id;
-    const data = await StudentSchoolAcademic.findStudentByID(id);
-    const response = responseJson(true, data, '', 200, []);
+    const { id } = req.params;
+
+    const academicSchool = await StudentSchoolAcademic.find({ student_id: id }).sort({ _id: -1 });
+    const academicCreative = await StudentCreativePortfolioAcademic.find({ student_id: id }).sort({ _id: -1 });
+    const academicResearch = await StudentResearchAcademic.find({ student_id: id }).sort({ _id: -1 });
+
+    const response = responseJson(true, { academicSchool, academicResearch, academicCreative }, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.get('/:id/testing', async (req, res) => {
+    const { id } = req.params;
+
+    const isStudentTesting = await StudentTesting.findOne({ student_id: id }).lean();
+
+    if (!isStudentTesting) {
+        const response = responseJson(false, {}, 'No student tests found.', StatusCodes.NOT_FOUND);
+        return res.status(StatusCodes.NOT_FOUND).json(response);
+    };
+
+    const response = responseJson(true, isStudentTesting, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.get('/:id/activities', async (req, res) => {
+    const { id } = req.params;
+
+    const curricularActivity = await StudentExtraCurricularActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
+    const workExperienceActivity = await StudentWorkExperienceActivity.find({ student_id: id }).sort({ _id: -1 }).lean();
+
+    const response = responseJson(true, { curricularActivity, workExperienceActivity }, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.get('/:id/careers', async (req, res) => {
+    const { id } = req.params;
+
+    const interest = await StudentInterestExploreCareer.findOne({ student_id: id }).lean();
+    const networking = await StudentNetworkingCareer.findOne({ student_id: id }).lean();
+    const researchPrep = await StudentResearchPrepCareer.findOne({ student_id: id }).lean();
+
+    const response = responseJson(true, { interest, networking, researchPrep }, '', 200);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+// add task in student 
+
+// remove student from list
+router.get('/:id/remove', async (req, res) => {
+    const { id } = req.params;
+    const isStudentProfile = await Student.findOne({ student: id }).deleteOne();
+    const isUser = await User.findOne({ student: id }).deleteOne();
+
+    if (!isStudentProfile) {
+        const response = responseJson(false, {}, 'Failed to remove student, try again.', StatusCodes.INTERNAL_SERVER_ERROR);
+        return res.status(StatusCodes.OK).json(response);
+    };
+
+    const response = responseJson(true, {}, 'Student account deleted.', 200);
     return res.status(StatusCodes.OK).json(response);
 });
 

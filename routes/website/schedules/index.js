@@ -7,6 +7,8 @@ const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
 
 const CounselorMember = require("../../../models/CounselorMember");
+const StudentInCounselor = require("../../../models/StudentInCounselor");
+
 const Schedule = require("../../../models/Schedule");
 const { makeMoved } = require("../../../utils/fileUpload");
 const { genZoomToken } = require("../../../middleware/zoomAuthToken");
@@ -127,6 +129,15 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
         type: 'quote'
     }
     const scheduleCreate = await Schedule.create({ student: id, ...createSchedule });
+
+    // add to student list for counselor 
+    if(scheduleCreate){
+            const isInStudentList = await StudentInCounselor.findOne({student: req.user._id, counselor});
+
+            if(!isInStudentList){
+                await StudentInCounselor.create({student: req.user._id, counselor});
+            }
+    }
 
     const response = responseJson(true, scheduleCreate, 'Session booked successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
