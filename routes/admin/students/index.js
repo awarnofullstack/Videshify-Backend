@@ -70,7 +70,7 @@ router.get('/list', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
 
     const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id');
