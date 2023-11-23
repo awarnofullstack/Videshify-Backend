@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const mongoosePaginate = require("mongoose-paginate-v2")
+const mongoosePaginate = require("mongoose-paginate-v2");
+const StudentInCounselor = require("./StudentInCounselor");
 
 const CounselorSchema = new Schema({
     user_id: {
@@ -97,10 +98,19 @@ CounselorSchema.plugin(mongoosePaginate);
 
 
 // virtuals 
-CounselorSchema.set('toJSON',{virtuals: true});
+CounselorSchema.set('toJSON', { virtuals: true });
 CounselorSchema.virtual('profileUrl').get(function () {
     return this.profile ? `${process.env.BASE_URL}/static/${this.profile}` : null;
 });
+
+
+CounselorSchema.methods.getStudentsCount = async function () {
+    return await StudentInCounselor.findOne({ counselor: this._id }).countDocuments();
+}
+
+CounselorSchema.methods.getStudentsCount = async function () {
+    return await StudentInCounselor.findOne({ counselor: this._id }).countDocuments();
+}
 
 
 module.exports = mongoose.model('Counselor', CounselorSchema);

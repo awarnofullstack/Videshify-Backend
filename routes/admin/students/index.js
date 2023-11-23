@@ -98,9 +98,9 @@ router.get('/:id/academics', async (req, res) => {
 router.get('/:id/testing', async (req, res) => {
     const { id } = req.params;
 
-    const isStudentTesting = await StudentTesting.findOne({ student_id: id }).lean();
+    const isStudentTesting = await StudentTesting.find({ student_id: id }).lean();
 
-    if (!isStudentTesting) {
+    if (!isStudentTesting || isStudentTesting.length == 0) {
         const response = responseJson(false, {}, 'No student tests found.', StatusCodes.NOT_FOUND);
         return res.status(StatusCodes.NOT_FOUND).json(response);
     };
@@ -122,9 +122,9 @@ router.get('/:id/activities', async (req, res) => {
 router.get('/:id/careers', async (req, res) => {
     const { id } = req.params;
 
-    const interest = await StudentInterestExploreCareer.findOne({ student_id: id }).lean();
-    const networking = await StudentNetworkingCareer.findOne({ student_id: id }).lean();
-    const researchPrep = await StudentResearchPrepCareer.findOne({ student_id: id }).lean();
+    const interest = await StudentInterestExploreCareer.find({ student_id: id }).sort({_id : -1}).lean();
+    const networking = await StudentNetworkingCareer.find({ student_id: id }).sort({_id : -1}).lean();
+    const researchPrep = await StudentResearchPrepCareer.find({ student_id: id }).sort({_id : -1}).lean();
 
     const response = responseJson(true, { interest, networking, researchPrep }, '', 200);
     return res.status(StatusCodes.OK).json(response);

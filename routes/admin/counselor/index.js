@@ -117,7 +117,6 @@ router.get('/:id/schedules-upcoming', async (req, res) => {
 });
 
 
-
 router.get("/:id/approve", async (req, res) => {
     const { id } = req.params;
 
@@ -137,6 +136,34 @@ router.get("/:id/approve", async (req, res) => {
     }, { new: true });
 
     const response = responseJson(true, approvedUser, 'Account approved', 200, []);
+    return res.status(200).json(response);
+});
+
+
+router.get('/:id/reports', async (req, res) => {
+    const { id } = req.params;
+
+    const report = {
+        totalReceivedAmount: 0,
+        lastReceivedAmount: 0,
+        totalAmountRemains: 0,
+        totalSessions: 0,
+        counselings: 0,
+        totalStudent: 0,
+        upcomingSchedules: 0,
+        pageViews: 0,
+        totalServices: 0,
+    }
+    
+    const counselor = await Counselor.findOne({user_id : id});
+
+    if(!counselor){
+        throw new Error('counselor id is invalid or missing.');
+    }
+
+
+    const members = await Schedule.paginate(query, options);
+    const response = responseJson(true, report, '', 200);
     return res.status(200).json(response);
 });
 
