@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const User = require("../../../models/User");
-const Counselor = require("../../../models/Counselor");
+const StudentCounselor = require("../../../models/StudentCounselor");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
 const Student = require("../../../models/Student");
 const responseJson = require("../../../utils/responseJson");
@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
         populate: [{ path: 'user_id', select: 'first_name last_name email phone role' }]
     }
 
-    const counselors = await Counselor.paginate({}, options);
+    const counselors = await StudentCounselor.paginate({}, options);
 
     const response = responseJson(true, counselors, '', 200);
     return res.status(200).json(response)
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
-    const counselors = await Counselor.findOne({ user_id: id });
+    const counselors = await StudentCounselor.findOne({ user_id: id });
 
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
@@ -40,7 +40,7 @@ router.get('/:id/profile', async (req, res) => {
 
 router.get('/:id/students', async (req, res) => {
     const { id } = req.params;
-    const counselors = await Counselor.findOne({ user_id: id });
+    const counselors = await StudentCounselor.findOne({ user_id: id });
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
     }
@@ -153,9 +153,9 @@ router.get('/:id/reports', async (req, res) => {
         upcomingSchedules: 0,
         pageViews: 0,
         totalServices: 0,
-    }    
-    const counselor = await Counselor.findOne({user_id : id});
-    if(!counselor){
+    }
+    const counselor = await StudentCounselor.findOne({ user_id: id });
+    if (!counselor) {
         throw new Error('counselor id is invalid or missing.');
     }
 

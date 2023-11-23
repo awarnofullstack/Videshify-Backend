@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 const mongoosePaginate = require("mongoose-paginate-v2");
 const StudentInCounselor = require("./StudentInCounselor");
+const Schedule = require("./Schedule");
 
 const CounselorSchema = new Schema({
     user_id: {
@@ -108,8 +109,8 @@ CounselorSchema.methods.getStudentsCount = async function () {
     return await StudentInCounselor.findOne({ counselor: this._id }).countDocuments();
 }
 
-CounselorSchema.methods.getStudentsCount = async function () {
-    return await StudentInCounselor.findOne({ counselor: this._id }).countDocuments();
+CounselorSchema.methods.getSessionsCount = async function () {
+    return await Schedule.findOne({ counselor: this._id }).countDocuments();
 }
 
 
