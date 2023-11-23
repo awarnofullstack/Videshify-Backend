@@ -29,10 +29,9 @@ router.get('/all', async (req, res) => {
         limit,
         page,
         populate: ['student'],
-        query: { counselor: req.user.id }
     }
 
-    const data = await StudentInCounselor.paginate({}, { ...options });
+    const data = await StudentInCounselor.paginate({ counselor: req.user.id }, { ...options });
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);

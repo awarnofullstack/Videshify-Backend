@@ -147,5 +147,4 @@ router.get('/:id/remove', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-
 module.exports = router;

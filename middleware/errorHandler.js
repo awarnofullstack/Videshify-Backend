@@ -8,6 +8,11 @@ const errorHandler = (error, req, res, next) => {
         const response = responseJson(false, null, error.message, StatusCodes.INTERNAL_SERVER_ERROR, []);
         return res.status(StatusCodes.OK).json(response);
     }
+    
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+        const response = responseJson(false, null, `${error.path} is missing or invalid.`, StatusCodes.INTERNAL_SERVER_ERROR, []);
+        return res.status(StatusCodes.OK).json(response);
+    }
 
     if (error.name === 'ReferenceError') {
         const response = responseJson(false, null, error.message, StatusCodes.INTERNAL_SERVER_ERROR, []);

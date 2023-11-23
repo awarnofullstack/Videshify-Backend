@@ -117,7 +117,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
     if (!paymentComplete) {
         throw new Error('Failed to book session transaction issue.')
     }
-
+    
     const { counselor, start_time, duration, description } = req.body;
     const createSchedule = {
         payment_ref: paymentComplete._id,
