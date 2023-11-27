@@ -68,6 +68,7 @@ router.get("/upcoming", async (req, res) => {
         populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
+    console.log(req.user);
     const query = { counselor: req.user._id };
     query.start_time = { $gte: new Date() }
 

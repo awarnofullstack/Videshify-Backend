@@ -33,7 +33,6 @@ router.get('/browse-counselors', async (req, res) => {
         query.origin_country = origin_country;
     }
     if (q_services) {
-        console.log(q_services);
         query.services_provided = { $in: q_services };
     }
     // if (rating) {
@@ -46,7 +45,7 @@ router.get('/browse-counselors', async (req, res) => {
     const options = {
         limit,
         page,
-        select: '-bank_account_details'
+        select: { bank_account_details: 0 }
     }
 
     const findPopularCounselor = await Counselor.paginate(query, { ...options });
@@ -62,11 +61,11 @@ router.get("/service-detail/:id", async (req, res) => {
 
 router.get("/show/:id", async (req, res) => {
     const { id } = req.params;
-    let counselorProfile = await Counselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone"}]).select({ bank_account_details: 0 });
+    let counselorProfile = await Counselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
 
     const counselorTeam = await CounselorMember.find({ counselor: new ObjectId(id) }).sort({ _id: -1 }).lean();
 
-    const response = responseJson(true, {counselorProfile,counselorTeam}, '', 200);
+    const response = responseJson(true, { counselorProfile, counselorTeam }, '', 200);
     return res.status(200).json(response);
 })
 

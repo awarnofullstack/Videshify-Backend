@@ -14,12 +14,22 @@ const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
     const { limit, page } = req.query;
+
+    const unSelectFields = {
+        resetToken: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        password: 0,
+        resetTokenExpiry: 0,
+        __v: 0
+    }
+    
     const options = {
         limit,
         page,
         select: { responds: 0 },
         sort: { _id: -1 },
-        populate: ['student']
+        populate: [{ path: 'student', select: unSelectFields }]
     }
 
     const inquiries = await Inquiry.paginate({ counselor: req.user._id }, options);
@@ -29,7 +39,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).populate({ path: 'student', select: ['first_name','last_name','email','phone'] });
+    const inquiry = await Inquiry.findOne({ _id: new ObjectId(id) }).populate({ path: 'student', select: ['first_name', 'last_name', 'email', 'phone'] });
 
     if (!inquiry) {
         throw new Error("Invalid document id, no record found.");

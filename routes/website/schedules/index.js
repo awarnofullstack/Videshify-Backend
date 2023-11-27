@@ -66,7 +66,7 @@ router.get("/upcoming", async (req, res) => {
         page,
         sort: { _id: -1 },
     }
-
+                                                                                                            
     const query = { student: req.user._id };
     query.start_time = { $gte: new Date() }
 
@@ -95,8 +95,19 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
     }
     const id = req.user._id;
 
+    console.log(id);
+
     const { amount, service, reference_no } = req.body;
 
+
+    const isInStudentList = await StudentInCounselor.findOne({ student: req.user._id, counselor: req.body.counselor });
+
+    if (!isInStudentList) {
+        throw new Error("student is already in list");
+        // await StudentInCounselor.create({ student: req.user._id, counselor });
+    }
+
+    throw new Error("student is already in list");
 
     const paymentRefValidate = await Payment.findOne({ reference_no });
 
@@ -106,7 +117,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
 
     const createPayment = {
         amount,
-        service : 'consultation',
+        service: 'consultation',
         reference_no,
         user: req.user._id,
         type: 'debit',
@@ -117,7 +128,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
     if (!paymentComplete) {
         throw new Error('Failed to book session transaction issue.')
     }
-    
+
     const { counselor, start_time, duration, description } = req.body;
     const createSchedule = {
         payment_ref: paymentComplete._id,
@@ -131,12 +142,12 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
     const scheduleCreate = await Schedule.create({ student: id, ...createSchedule });
 
     // add to student list for counselor 
-    if(scheduleCreate){
-            const isInStudentList = await StudentInCounselor.findOne({student: req.user._id, counselor});
+    if (scheduleCreate) {
+        const isInStudentList = await StudentInCounselor.findOne({ student: req.user._id, counselor });
 
-            if(!isInStudentList){
-                await StudentInCounselor.create({student: req.user._id, counselor});
-            }
+        if (!isInStudentList) {
+            await StudentInCounselor.create({ student: req.user._id, counselor });
+        }
     }
 
     const response = responseJson(true, scheduleCreate, 'Session booked successfuly.', StatusCodes.OK, []);

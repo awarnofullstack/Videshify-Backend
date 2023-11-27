@@ -1,5 +1,6 @@
 const express = require("express");
 const { StatusCodes } = require("http-status-codes");
+const mongoose = require("mongoose");
 
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
@@ -20,18 +21,32 @@ const StudentResearchPrep = require("../../../models/StudentResearchPrepCareer")
 const StudentCurricularActivity = require("../../../models/StudentExtraCurricularActivity")
 const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity")
 
+const ObjectId = mongoose.Types.ObjectId;
+
 const router = express.Router();
 
 router.get('/all', async (req, res) => {
 
     const { limit, page } = req.query;
+
+    const unSelectFields = {
+        resetToken: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        password: 0,
+        resetTokenExpiry: 0,
+        __v: 0
+    }
+
     const options = {
         limit,
         page,
-        populate: ['student'],
+        populate: [{ path: 'student', select: unSelectFields }],
     }
 
-    const data = await StudentInCounselor.paginate({ counselor: req.user.id }, { ...options });
+    const query = { student: "651fd267749fdc98150cdb13" };
+
+    const data = await StudentInCounselor.paginate(query, { ...options });
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
