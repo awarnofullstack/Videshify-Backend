@@ -15,7 +15,7 @@ function authenticateToken(req, res, next) {
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
         if (err) {
             console.log(err);
-            const response = responseJson(false, null, 'Token has expired.', StatusCodes.UNAUTHORIZED);
+            const response = responseJson(false, null, 'You are not logged in', StatusCodes.UNAUTHORIZED);
             return res.status(200).json(response);
         }
 

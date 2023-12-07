@@ -44,12 +44,26 @@ router.get('/all', async (req, res) => {
         populate: [{ path: 'student', select: unSelectFields }],
     }
 
-    const query = { student: "651fd267749fdc98150cdb13" };
+    const query = { counselor: new ObjectId(req.user._id) };
 
     const data = await StudentInCounselor.paginate(query, { ...options });
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
+        return res.status(StatusCodes.OK).json(response);
+    }
+    const response = responseJson(true, data, '', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.post('/add', async (req, res) => {
+
+    const { student } = req.query;
+
+    const data = await StudentInCounselor.create({ counselor: req.user._id, student });
+
+    if (!data) {
+        const response = responseJson(true, data, 'failed', StatusCodes.OK, []);
         return res.status(StatusCodes.OK).json(response);
     }
     const response = responseJson(true, data, '', StatusCodes.OK, []);

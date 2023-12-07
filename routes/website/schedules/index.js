@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose")
 
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
@@ -24,6 +25,7 @@ const createScheduleValidationChain = [
     body('start_time').notEmpty().withMessage('Date & time is required.'),
 ];
 
+const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
 
@@ -66,7 +68,7 @@ router.get("/upcoming", async (req, res) => {
         page,
         sort: { _id: -1 },
     }
-                                                                                                            
+
     const query = { student: req.user._id };
     query.start_time = { $gte: new Date() }
 
@@ -95,19 +97,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
     }
     const id = req.user._id;
 
-    console.log(id);
-
     const { amount, service, reference_no } = req.body;
-
-
-    const isInStudentList = await StudentInCounselor.findOne({ student: req.user._id, counselor: req.body.counselor });
-
-    if (!isInStudentList) {
-        throw new Error("student is already in list");
-        // await StudentInCounselor.create({ student: req.user._id, counselor });
-    }
-
-    throw new Error("student is already in list");
 
     const paymentRefValidate = await Payment.findOne({ reference_no });
 
