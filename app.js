@@ -79,7 +79,8 @@ app.use("/api/counselor", counselorRouter);
 *****************************************************************************************
 */
 
-
+const studentCounselorRouter = require("./routes/studentCounselor");
+app.use("/api/student-counselor", studentCounselorRouter);
 
 
 

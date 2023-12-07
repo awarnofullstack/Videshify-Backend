@@ -28,21 +28,9 @@ const StudentCounselorSchema = new Schema({
         type: String,
         required: true
     },
-    high_school_name: {
-        type: String,
-        required: true
-    },
     organization_type: {
         type: String,
         enum: ['individual', 'agency'],
-        required: true
-    },
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
         required: true
     },
     education: {
@@ -58,6 +46,10 @@ const StudentCounselorSchema = new Schema({
         required: true
     },
     city: {
+        type: String,
+        required: true
+    },
+    origin_country: {
         type: String,
         required: true
     },
