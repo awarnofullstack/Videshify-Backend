@@ -133,7 +133,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
 
     // add to student list for counselor 
     if (scheduleCreate) {
-        const isInStudentList = await StudentInCounselor.findOne({ student: req.user._id, counselor });
+        const isInStudentList = await StudentInCounselor.findOne({ student: new ObjectId(req.user._id), counselor: new ObjectId(counselor) });
 
         if (!isInStudentList) {
             await StudentInCounselor.create({ student: req.user._id, counselor });

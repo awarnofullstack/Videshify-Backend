@@ -19,7 +19,7 @@ BlogSchema.plugin(mongoosePaginate);
 
 BlogSchema.set('toJSON', {
     virtuals: true
-})
+});
 
 
 BlogSchema.virtual('thumbnail').get(function () {
