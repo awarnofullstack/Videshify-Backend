@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
         sort: { _id: -1 }
     }
 
-    const query = { follower: req.user._id };
+    const query = { follower: new ObjectId(req.user._id) };
 
     const communityFollowedAccounts = await CommunityFollowedAccount.paginate(query, options);
     const response = responseJson(true, communityFollowedAccounts, '', 200);

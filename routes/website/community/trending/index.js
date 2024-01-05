@@ -61,9 +61,34 @@ router.get("/", async (req, res) => {
                 },
             },
             {
+                $lookup: {
+                    from: 'communityfollows',
+                    let: { authorId: '$authorInfo._id', authorizedUserId: new ObjectId(req.user._id) },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$following', '$$authorId'] },
+                                        { $eq: ['$follower', '$$authorizedUserId'] },
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                hasFollowed: { $literal: true },
+                            },
+                        },
+                    ],
+                    as: 'followInfo',
+                },
+            },
+            {
                 $addFields: {
                     likeCount: { $size: '$likes' },
                     commentCount: { $size: '$comments' },
+                    hasFollowed: { $ifNull: [{ $arrayElemAt: ['$followInfo.hasFollowed', 0] }, false] },
                 },
             },
             {
@@ -73,6 +98,8 @@ router.get("/", async (req, res) => {
                     docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
                     postBy: { $arrayElemAt: ['$authorInfo', 0] },
                     likeCount: 1,
+                    createdAt: 1,
+                    hasFollowed: 1,
                     commentCount: 1,
                     role: { $arrayElemAt: ['$authorInfo.role', 0] },
                 },
@@ -202,11 +229,13 @@ router.get("/", async (req, res) => {
                                 postId: '$_id',
                                 text: '$text',
                                 content: '$content',
+                                createdAt: '$createdAt',
                                 docUrl: '$docUrl',
                                 author: '$author',
                                 postBy: '$postBy',
                                 likeCount: '$likeCount',
                                 commentCount: '$commentCount',
+                                followed: '$hasFollowed'
                             },
                         ],
                     },

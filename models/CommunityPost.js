@@ -33,6 +33,10 @@ const CommunityPostSchema = new Schema({
     content: {
         type: contentSchema,
         required: false
+    },
+    category: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true,
