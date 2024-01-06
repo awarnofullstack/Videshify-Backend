@@ -23,7 +23,8 @@ router.get('/mentors', async (req, res) => {
     const options = {
         limit,
         page,
-        select: { bank_account_details: 0 }
+        select: { bank_account_details: 0 },
+        populate: [{ path: 'user_id', select: ['first_name', 'last_name'] }]
     }
 
     const studentcounselors = await StudentCounselor.paginate(query, options);
@@ -96,7 +97,7 @@ router.get("/:id/service/show", async (req, res) => {
         throw new Error('Invalid service id requested.');
     }
 
-    const serviceByCounselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({bank_account_details: 0}).lean();
+    const serviceByCounselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).lean();
 
     const response = responseJson(false, { ...serviceDetail, ...serviceByCounselor }, '', 200);
     return res.status(200).json(response);
