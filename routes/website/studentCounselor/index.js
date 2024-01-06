@@ -102,7 +102,7 @@ router.get('/browse-services', async (req, res) => {
         populate: [{ path: 'counselor', select: ['first_name', 'last_name'] }]
     }
     const services = await Service.paginate(query, options);
-    const response = responseJson(false, services, '', 200);
+    const response = responseJson(true, services, '', 200);
     return res.status(200).json(response);
 
 });
