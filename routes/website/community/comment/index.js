@@ -16,7 +16,8 @@ router.get("/:post/comments", async (req, res) => {
     const options = {
         limit,
         page,
-        sort: { _id: -1 }
+        sort: { _id: -1 },
+        populate: [{ path: 'sender', select: ['first_name', 'last_name'] }]
     }
 
     const communityComment = await CommunityPostComment.paginate({ post: req.params.post }, options);

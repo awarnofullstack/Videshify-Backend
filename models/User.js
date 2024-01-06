@@ -86,13 +86,16 @@ UserSchema.set('toJSON', { virtuals: true });
 
 // Custom Virtuals
 UserSchema.virtual('name').get(function () {
+  if (!this.first_name || !this.last_name) {
+    return null
+  }
   return this.first_name + " " + this.last_name;
 })
 
 UserSchema.virtual('profile', {
   ref: 'Image',
   localField: '_id',
-  foreignField: 'entity_id', 
+  foreignField: 'entity_id',
   justOne: true,
   options: { entity: 'User' },
 });

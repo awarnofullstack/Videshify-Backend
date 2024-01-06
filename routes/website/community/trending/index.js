@@ -298,7 +298,7 @@ router.post("/:id/comment", async (req, res) => {
     const postNewComment = {
         ...req.body,
         post: id,
-        sender: req.user._id
+        sender: new ObjectId(req.user._id)
     }
 
     const communityPostComment = await CommunityPostComment.create(postNewComment);
