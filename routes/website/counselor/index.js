@@ -14,10 +14,6 @@ const Counselor = require("../../../models/Counselor");
 const CounselorMember = require("../../../models/CounselorMember");
 
 
-router.get('/browse-services', async (req, res) => {
-    return res.send("hello counselors")
-});
-
 router.get('/browse-counselors', async (req, res) => {
 
     const {

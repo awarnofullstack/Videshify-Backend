@@ -88,6 +88,25 @@ router.get('/browse-counselors', async (req, res) => {
 
 });
 
+
+router.get('/browse-services', async (req, res) => {
+
+    const {
+        limit, page, search } = req.query;
+
+    const query = {};
+
+    const options = {
+        limit,
+        page,
+        populate: [{ path: 'counselor', select: ['first_name', 'last_name'] }]
+    }
+    const services = await Service.paginate(query, options);
+    const response = responseJson(false, services, '', 200);
+    return res.status(200).json(response);
+
+});
+
 router.get("/:id/service/show", async (req, res) => {
 
     const { id } = req.params;
