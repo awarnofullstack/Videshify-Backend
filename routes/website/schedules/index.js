@@ -79,7 +79,7 @@ router.get("/upcoming", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
-    const schedule = await Schedule.findOne({ _id: id, student: req.user._id });
+    const schedule = await Schedule.findOne({ _id: id, student: req.user._id }).populate('counselor').populate('assigned_to');
 
     if (!schedule) {
         throw new Error("No schedule found with id passed.");
