@@ -118,7 +118,7 @@ router.get("/:id/service/show", async (req, res) => {
 
     const serviceByCounselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).lean();
 
-    const response = responseJson(false, { ...serviceDetail, ...serviceByCounselor }, '', 200);
+    const response = responseJson(true, { ...serviceDetail, ...serviceByCounselor }, '', 200);
     return res.status(200).json(response);
 });
 
