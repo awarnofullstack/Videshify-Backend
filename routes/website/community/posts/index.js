@@ -31,8 +31,6 @@ router.get("/", async (req, res) => {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
     }
-
-    console.log(req.user._id);
     const query = { author: { $eq: new ObjectId(req.user._id) } }
 
     const posts = CommunityPost.aggregate([
@@ -59,6 +57,7 @@ router.get("/", async (req, res) => {
             $project: {
                 text: 1,
                 content: 1,
+                createdAt: 1,
                 docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
                 likeCount: { $size: '$likes' },
                 commentCount: { $size: '$comments' },
