@@ -159,6 +159,20 @@ router.put("/:id", async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
+router.post('/:id/rate', async (req, res) => {
+    const { id } = req.params;
+    const { rating } = req.body;
+    const schedule = await Schedule.findByIdAndUpdate(id, { rating }, { new: true });
+
+    if (!schedule) {
+        const response = responseJson(false, null, 'Schedule not found', 500, []);
+        return res.status(StatusCodes.OK).json(response);
+    }
+    const response = responseJson(true, schedule, 'Rating updated successfully', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+
+})
+
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
 

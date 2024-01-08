@@ -55,8 +55,13 @@ const ScheduleSchema = new Schema({
         ref: 'Payment',
         required: true,
         unique: true
-    }
-
+    },
+    rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: null
+    },
 }, { timestamps: true, versionKey: false });
 
 
