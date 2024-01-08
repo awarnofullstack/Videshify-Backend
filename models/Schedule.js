@@ -62,6 +62,15 @@ const ScheduleSchema = new Schema({
         max: 5,
         default: null
     },
+    is_reschedule: {
+        type: Boolean,
+        default: false
+    },
+    reschedule_at: {
+        type: Date,
+        required: false,
+        default: null
+    }
 }, { timestamps: true, versionKey: false });
 
 

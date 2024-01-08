@@ -77,6 +77,23 @@ router.get("/upcoming", async (req, res) => {
     return res.status(200).json(response);
 });
 
+router.get("/re-schedules", async (req, res) => {
+
+    const { limit, page } = req.query;
+    const options = {
+        limit,
+        page,
+        sort: { _id: -1 },
+    }
+
+    const query = { student: req.user._id, is_reschedule: true };
+    query.start_time = { $gte: new Date() }
+
+    const schedules = await Schedule.paginate(query, options);
+    const response = responseJson(true, schedules, '', 200);
+    return res.status(200).json(response);
+});
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const schedule = await Schedule.findOne({ _id: id, student: req.user._id }).populate('counselor').populate('assigned_to');
@@ -156,6 +173,40 @@ router.put("/:id", async (req, res) => {
     const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body } }, { new: true });
 
     const response = responseJson(true, updatedSchedule, 'Schedule updated successfuly.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.put("/:id/re-schedule", async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await Schedule.findOne({ _id: id });
+
+    if (!schedule) {
+        throw new Error('You are trying to update non-existing document.');
+    }
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body, is_reschedule: true } }, { new: true });
+
+    const response = responseJson(true, updatedSchedule, 'Re-Schedule requested successfuly.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.put("/:id/re-schedule/accept", async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await Schedule.findOne({ _id: id });
+
+    if (!schedule) {
+        throw new Error('You are trying to update non-existing document.');
+    }
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, {
+        $set: {
+            start_time: schedule.reschedule_at,
+            is_reschedule: false,
+            reschedule_at: null
+        }
+    }, { new: true });
+
+    const response = responseJson(true, updatedSchedule, 'Re-Schedule updated successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 
