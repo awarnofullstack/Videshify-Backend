@@ -70,6 +70,11 @@ const ScheduleSchema = new Schema({
         type: Date,
         required: false,
         default: null
+    },
+    reschedule_by: {
+        type: String,
+        enum: ['user', 'counselor'],
+        default: null
     }
 }, { timestamps: true, versionKey: false });
 

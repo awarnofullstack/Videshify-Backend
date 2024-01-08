@@ -184,7 +184,7 @@ router.put("/:id/re-schedule", async (req, res) => {
     if (!schedule) {
         throw new Error('You are trying to update non-existing document.');
     }
-    const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body, is_reschedule: true } }, { new: true });
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body, is_reschedule: true, reschedule_by: 'user' } }, { new: true });
 
     const response = responseJson(true, updatedSchedule, 'Re-Schedule requested successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
@@ -202,7 +202,8 @@ router.put("/:id/re-schedule/accept", async (req, res) => {
         $set: {
             start_time: schedule.reschedule_at,
             is_reschedule: false,
-            reschedule_at: null
+            reschedule_at: null,
+            reschedule_by: null
         }
     }, { new: true });
 
