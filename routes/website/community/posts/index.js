@@ -54,13 +54,172 @@ router.get("/", async (req, res) => {
             },
         },
         {
+            $lookup: {
+                from: 'users',
+                let: { authorId: '$author' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: { $eq: ['$_id', '$$authorId'] },
+                        },
+                    },
+                    {
+                        $project: {
+                            name: { $concat: ['$first_name', ' ', '$last_name'] },
+                            role: 1,
+                        },
+                    },
+                ],
+                as: 'authorInfo',
+            },
+        },
+        {
+            $lookup: {
+                from: 'students', // Default collection name
+                let: { role: '$role', postByUserId: '$postBy._id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$user_id', '$$postByUserId'] },
+                                    { $eq: ['$$role', 'student'] },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] }
+                        }
+                    },
+                    {
+                        $project: {
+                            author_name: '$preferred_name',
+                            profile: 1
+                        }
+                    }
+                ],
+                as: 'studentData',
+            },
+        },
+        {
+            $lookup: {
+                from: 'counselors', // Default collection name
+                let: { role: '$role', postByUserId: '$postBy._id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$user_id', '$$postByUserId'] },
+                                    { $eq: ['$$role', 'counselor'] },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] }
+                        }
+                    },
+                    {
+                        $project: {
+                            author_name: '$agency_name',
+                            profile: 1
+                        }
+                    }
+                ],
+                as: 'counselorData',
+            },
+        },
+        {
+            $lookup: {
+                from: 'studentcounselors', // Default collection name
+                let: { role: '$role', postByUserId: '$postBy._id' },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$user_id', '$$postByUserId'] },
+                                    { $eq: ['$$role', 'student counselor'] },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] }
+                        }
+                    },
+                    {
+                        $project: {
+                            author_name: '$name',
+                            profile: 1
+                        }
+                    }
+                ],
+                as: 'studentCounselorData',
+            },
+        },
+        {
+            $addFields: {
+                nonEmptyFields: {
+                    $filter: {
+                        input: [
+                            { $arrayElemAt: ["$studentData", 0] },
+                            { $arrayElemAt: ["$counselorData", 0] },
+                            { $arrayElemAt: ["$studentCounselorData", 0] },
+                        ],
+                        as: 'field',
+                        cond: { $ne: ['$$field', []] },
+                    },
+                },
+            },
+        },
+        {
+            $addFields: {
+                nonEmptyFields: {
+                    $cond: {
+                        if: { $eq: [{ $size: '$nonEmptyFields' }, 0] },
+                        then: [{}], // Use an empty array if there are no non-empty fields
+                        else: '$nonEmptyFields',
+                    },
+                },
+            },
+        },
+        {
             $project: {
+                author: { $arrayElemAt: ['$authorInfo.first_name', 0] },
+                postBy: { $arrayElemAt: ['$authorInfo', 0] },
                 text: 1,
+                postId: '$_id',
                 content: 1,
                 createdAt: 1,
                 docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
                 likeCount: { $size: '$likes' },
                 commentCount: { $size: '$comments' },
+            },
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
+                    $mergeObjects: [
+                        { $arrayElemAt: ['$nonEmptyFields', 0] },
+                        {
+                            postId: '$_id',
+                            text: '$text',
+                            content: '$content',
+                            createdAt: '$createdAt',
+                            docUrl: '$docUrl',
+                            author: '$author',
+                            postBy: '$postBy',
+                            likeCount: '$likeCount',
+                            commentCount: '$commentCount',
+                        },
+                    ],
+                },
             },
         },
     ]);

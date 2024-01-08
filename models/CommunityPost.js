@@ -28,7 +28,8 @@ const CommunityPostSchema = new Schema({
     },
     text: {
         type: String,
-        required: true
+        required: false,
+        default: ''
     },
     content: {
         type: contentSchema,
