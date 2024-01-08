@@ -49,6 +49,7 @@ router.get("/past", async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
+        populate: [{ path: "counselor" }]
     }
 
     const query = { student: req.user._id };
@@ -67,6 +68,7 @@ router.get("/upcoming", async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
+        populate: [{ path: "counselor" }]
     }
 
     const query = { student: req.user._id };
