@@ -55,6 +55,71 @@ router.get('/browse-counselors', async (req, res) => {
     return res.status(200).json(response);
 });
 
+router.get("/services-provided", async (req, res) => {
+
+    const {
+        limit, page, search
+    } = req.query;
+
+    const query = {};
+
+    const options = {
+        limit, page,
+        sort: { _id: -1 },
+        select: { services_provided: 1 }
+    }
+
+
+    if (search) {
+        query.services_provided = { $in: search.split(',') }
+    }
+
+    const aggregatePipeline = [
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'user_id',
+                foreignField: '_id',
+                as: 'user'
+            }
+        },
+        {
+            $unwind: '$user'
+        },
+        {
+            $match: query
+        },
+        {
+            $addFields: {
+                name: {
+                    $concat: ['$user.first_name', ' ', '$user.last_name']
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                services_provided: { $push: '$services_provided' }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                services_provided: { $reduce: { input: '$services_provided', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } }
+            }
+        },
+    ];
+
+    let servicesOffered = Counselor.aggregate(aggregatePipeline, options)
+
+    servicesOffered = await Counselor.aggregatePaginate(servicesOffered, options)
+
+    const services = servicesOffered?.docs[0]?.services_provided || [];
+
+    const response = responseJson(true, { ...servicesOffered, docs: services }, '', 200);
+    return res.status(200).json(response);
+});
+
 router.get("/service-detail/:id", async (req, res) => {
     const response = responseJson(false, {}, 'Module is Under progress.', 404);
     return res.status(200).json(response);
