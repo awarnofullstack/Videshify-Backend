@@ -62,7 +62,10 @@ router.get('/mentors', async (req, res) => {
                 as: 'user',
                 pipeline: [
                     {
-                        $project: { first_name: 1, last_name: 1, _id: 1, role: 1 }
+                        $addFields: { name: { $concat: ['$first_name', ' ', '$last_name'] } }
+                    },
+                    {
+                        $project: { first_name: 1, last_name: 1, _id: 1, role: 1, name: 1 }
                     }
                 ]
             },
