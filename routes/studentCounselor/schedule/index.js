@@ -7,7 +7,9 @@ const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
 
 const CounselorMember = require("../../../models/CounselorMember");
+const User = require("../../../models/User");
 const Schedule = require("../../../models/Schedule");
+const StudentCounselor = require("../../../models/StudentCounselor");
 
 const { makeMoved } = require("../../../utils/fileUpload");
 const { createMeeting } = require("../../../utils/createMeeting");
@@ -115,28 +117,31 @@ router.delete("/:id", async (req, res) => {
 });
 
 
-
 // assign member to schedule 
-router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req, res) => {
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
-        return res.status(StatusCodes.OK).json(response);
-    }
+router.put("/:id/assign", genZoomToken, async (req, res) => {
 
     const { id } = req.params;
 
     const schedule = await Schedule.findOne({ _id: id });
 
     if (!schedule) {
-        throw new Error('You are trying to assign member to non-existing schedule.');
+        throw new Error('You are trying to assign to non-existing schedule.');
     }
 
-    const member = await CounselorMember.findOne({ _id: req.body.member_id });
+    const user = await User.findOne({ _id: schedule.counselor }).lean();
+    const counselor = await StudentCounselor.findOne({ user_id: schedule.counselor }).lean();
+    const member = await CounselorMember.findOne({ counselor: schedule.counselor }).lean();
+
+    let memberId = member?._id;
     if (!member) {
-        throw new Error('Member id is not valid.');
+        const newMember = await CounselorMember.create({
+            name: `${user.first_name} ${user.last_name}`,
+            email: user.email,
+            profile: counselor.profile,
+            experience: counselor.experience,
+        });
+
+        memberId = newMember._id
     }
 
     const { duration, topic, start_time } = schedule
@@ -148,7 +153,7 @@ router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req,
     const updatedSchedule = await Schedule.findByIdAndUpdate(id,
         {
             $set: {
-                assigned_to: req.body.member_id,
+                assigned_to: memberId,
                 invite_link: createLink.join_url,
                 start_time: createLink.start_time,
                 duration: createLink.duration,

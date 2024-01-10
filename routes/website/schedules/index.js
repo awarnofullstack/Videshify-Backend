@@ -14,6 +14,8 @@ const Schedule = require("../../../models/Schedule");
 const { makeMoved } = require("../../../utils/fileUpload");
 const { genZoomToken } = require("../../../middleware/zoomAuthToken");
 const Payment = require("../../../models/Payment");
+const User = require("../../../models/User");
+const { assignSelf } = require("../../../utils/createMeeting");
 
 
 const createScheduleValidationChain = [
@@ -107,7 +109,7 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json(response);
 });
 
-router.post("/checkout", createScheduleValidationChain, async (req, res) => {
+router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req, res) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -148,6 +150,7 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
         description,
         type: 'quote'
     }
+
     const scheduleCreate = await Schedule.create({ student: id, ...createSchedule });
 
     // add to student list for counselor 
@@ -158,6 +161,15 @@ router.post("/checkout", createScheduleValidationChain, async (req, res) => {
             await StudentInCounselor.create({ student: req.user._id, counselor });
         }
     }
+
+    const user = await User.findOne({ _id: counselor }).lean();
+
+    if (user.role === 'student counselor') {
+        await assignSelf(req, scheduleCreate._id)
+    }
+
+
+
 
     const response = responseJson(true, scheduleCreate, 'Session booked successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
