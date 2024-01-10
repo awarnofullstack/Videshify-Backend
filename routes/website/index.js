@@ -13,11 +13,13 @@ const blog = require("./blog");
 const ticket = require("./ticket");
 const community = require("./community");
 const contact = require("./contact");
+const rating = require("./rating");
 
 router.use('/auth', auth);
 router.use('/student', [authenticateToken, authorizeRoles('student')], profile);
 router.use('/counselor', counselor);
 router.use('/student-counselor', studentCounselor);
+router.use('/rating', [authenticateToken, authorizeRoles('student')], rating);
 router.use('/inquiry', [authenticateToken, authorizeRoles('student')], inquiry);
 router.use('/schedule', [authenticateToken, authorizeRoles('student')], schedule);
 router.use('/ticket', [authenticateToken, authorizeRoles('student')], ticket);

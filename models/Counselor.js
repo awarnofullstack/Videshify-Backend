@@ -64,7 +64,7 @@ const CounselorSchema = new Schema({
     profile: String,
     origin_country: {
         type: String,
-        required: true
+        required: false
     },
     services_provided: {
         type: Array,
@@ -89,7 +89,9 @@ const CounselorSchema = new Schema({
             type: String,
             required: true,
         },
-    }
+    },
+    averageRating: Number,
+    numberOfReviews: Number
 },
     {
         timestamps: true

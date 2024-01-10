@@ -37,7 +37,9 @@ const ServiceSchema = new Schema({
     status: {
         type: Boolean,
         default: true
-    }
+    },
+    averageRating: Number,
+    numberOfReviews: Number
 },
     {
         timestamps: true,

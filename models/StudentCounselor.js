@@ -53,7 +53,7 @@ const StudentCounselorSchema = new Schema({
         type: String,
         required: true
     },
-    profile:{
+    profile: {
         type: String,
         default: null
     },
@@ -84,7 +84,10 @@ const StudentCounselorSchema = new Schema({
             type: String,
             required: true,
         },
-    }
+
+    },
+    averageRating: Number,
+    numberOfReviews: Number
 },
     {
         timestamps: true
