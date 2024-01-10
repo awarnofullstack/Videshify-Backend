@@ -54,7 +54,7 @@ router.get("/:id/quote", async (req, res) => {
     }
 
     const quote = inquiry.responds.id(id);
-    const counselor = await Counselor.findOne({user_id : inquiry.counselor}).select('agency_name').lean();
+    const counselor = await Counselor.findOne({user_id : inquiry.counselor}).select('agency_name user_id').lean();
 
     const response = responseJson(true, {quote, booking_with: counselor}, '', 200);
     return res.status(200).json(response);
