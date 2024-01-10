@@ -57,6 +57,10 @@ router.get("/past", async (req, res) => {
     const query = { student: req.user._id };
     query.start_time = { $lt: new Date() }
 
+    if (date) {
+        query.start_time = { $eq: date }
+    }
+
     const schedules = await Schedule.paginate(query, options);
     const response = responseJson(true, schedules, '', 200);
     return res.status(200).json(response);
@@ -65,7 +69,7 @@ router.get("/past", async (req, res) => {
 
 router.get("/upcoming", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -75,6 +79,10 @@ router.get("/upcoming", async (req, res) => {
 
     const query = { student: req.user._id };
     query.start_time = { $gte: new Date() }
+
+    if (date) {
+        query.start_time = { $eq: date }
+    }
 
     const schedules = await Schedule.paginate(query, options);
     const response = responseJson(true, schedules, '', 200);
