@@ -19,7 +19,7 @@ const createTicketValidationChain = [
 ];
 
 router.get("/", async (req, res) => {
-    const { limit, page } = req.query;
+    const { limit, page, search, status } = req.query;
 
     const query = { createdBy: req.user._id };
 
@@ -30,8 +30,12 @@ router.get("/", async (req, res) => {
         sort: { _id: -1 }
     }
 
-    if (req.query.status) {
-        query.status = req.query.status
+    if (status) {
+        query.status = status
+    }
+
+    if (search) {
+        query.ticketId = { $regex: `${search}`, $options: 'i' }
     }
 
     const tickets = await Ticket.paginate(query, options);
