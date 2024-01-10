@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const mongoosePaginate = require("mongoose-paginate-v2");
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const StudentInCounselor = require("./StudentInCounselor");
 const Schedule = require("./Schedule");
 
@@ -31,7 +32,8 @@ const StudentCounselorSchema = new Schema({
     organization_type: {
         type: String,
         enum: ['individual', 'agency'],
-        required: true
+        required: true,
+        default: "individual"
     },
     education: {
         type: String,
@@ -95,6 +97,7 @@ const StudentCounselorSchema = new Schema({
 );
 
 StudentCounselorSchema.plugin(mongoosePaginate);
+StudentCounselorSchema.plugin(aggregatePaginate);
 
 
 // virtuals 

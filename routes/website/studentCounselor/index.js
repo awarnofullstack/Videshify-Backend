@@ -16,18 +16,69 @@ const Service = require("../../../models/Service");
 router.get('/mentors', async (req, res) => {
 
     const {
-        limit, page, search } = req.query;
+        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
+    } = req.query;
 
     const query = {};
+
+
+    if (origin_country) {
+        query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
+    }
+    if (services) {
+        query.services_provided = { $in: services.split(",") };
+    }
+
+    if (rating) {
+        query.averageRating = { $gte: rating };
+    }
+
+    const orConditions = [];
+
+    if (search) {
+        orConditions.push(
+            { 'user.first_name': { $regex: new RegExp(search, 'i') } },
+            { 'user.last_name': { $regex: new RegExp(search, 'i') } },
+        );
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
 
     const options = {
         limit,
         page,
         select: { bank_account_details: 0 },
-        populate: [{ path: 'user_id', select: ['first_name', 'last_name'] }]
+        populate: [{ path: "user_id", select: "first_name last_name" }]
     }
 
-    const studentcounselors = await StudentCounselor.paginate(query, options);
+    const counselors = StudentCounselor.aggregate([
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'user_id',
+                foreignField: '_id',
+                as: 'user',
+                pipeline: [
+                    {
+                        $project: { first_name: 1, last_name: 1, _id: 1, role: 1 }
+                    }
+                ]
+            },
+        },
+        {
+            $unwind: '$user'
+        },
+        {
+            $project: { bank_account_details: 0 }
+        },
+        {
+            $match: query
+        }
+    ]);
+
+    const studentcounselors = await StudentCounselor.aggregatePaginate(counselors, options);
     const response = responseJson(true, studentcounselors, '', 200);
     return res.status(200).json(response);
 });
@@ -55,23 +106,26 @@ router.get("/:id/services", async (req, res) => {
 router.get('/browse-counselors', async (req, res) => {
 
     const {
-        limit, page, search, type, origin_country, q_services, rating, price_per_hour_min, price_per_hour_max
+        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
     } = req.query;
 
     const query = {};
 
-    if (type) {
-        query.organization_type = type.toLowerCase();
-    }
     if (origin_country) {
-        query.origin_country = origin_country;
+        query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
     }
-    if (q_services) {
-        query.services_provided = { $in: q_services };
+    if (services) {
+        query.services_provided = { $in: services.split(",") };
     }
-    // if (rating) {
-    //     query.experience = { $gte: rating };
-    // }
+
+    if (rating) {
+        query.averageRating = { $gte: rating };
+    }
+
+    if (search) {
+        query.agency_name = { $regex: `${search}`, $options: 'i' };
+    }
+
     // if (pricePerHour) {
     //     query['bank_account_details.price_per_hour'] = { $lte: parseFloat(pricePerHour) };
     // }
@@ -92,12 +146,17 @@ router.get('/browse-counselors', async (req, res) => {
 router.get('/browse-services', async (req, res) => {
 
     const {
-        limit, page, search } = req.query;
+        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
+    } = req.query;
 
     const query = {};
 
-    if (search && search.length) {
-        query.service_name = search.toLowerCase();
+    if (rating) {
+        query.averageRating = { $gte: rating };
+    }
+
+    if (search) {
+        query.service_name = { $regex: `${search}`, $options: 'i' };
     }
 
     const options = {
@@ -105,8 +164,8 @@ router.get('/browse-services', async (req, res) => {
         page,
         populate: [{ path: 'counselor', select: ['first_name', 'last_name'] }]
     }
-    const services = await Service.paginate(query, options);
-    const response = responseJson(true, services, '', 200);
+    const servicesList = await Service.paginate(query, options);
+    const response = responseJson(true, servicesList, '', 200);
     return res.status(200).json(response);
 
 });
@@ -122,7 +181,7 @@ router.get("/:id/service/show", async (req, res) => {
 
     const counselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).populate('user_id');
 
-    const response = responseJson(true, {...serviceDetail, counselor}, '', 200);
+    const response = responseJson(true, { ...serviceDetail, counselor }, '', 200);
     return res.status(200).json(response);
 });
 

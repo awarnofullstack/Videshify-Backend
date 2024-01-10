@@ -31,7 +31,8 @@ const CounselorSchema = new Schema({
     organization_type: {
         type: String,
         enum: ['individual', 'agency'],
-        required: true
+        required: true,
+        default:"agency"
     },
     agency_name: {
         type: String,
