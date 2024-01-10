@@ -139,7 +139,7 @@ router.get("/:id/counselor", async (req, res) => {
     }
 
     // Create a new review
-    const reviews = await Rating.paginate({ counselor: id }, options).populate('rateBy');
+    const reviews = await Rating.paginate({ counselor: id }, options);
 
     const response = responseJson(true, reviews, '', 200);
     return res.status(200).json(response);

@@ -96,6 +96,10 @@ router.get('/browse-services', async (req, res) => {
 
     const query = {};
 
+    if (search && search.length) {
+        query.service_name = search.toLowerCase();
+    }
+
     const options = {
         limit,
         page,

@@ -31,9 +31,14 @@ router.get('/browse-counselors', async (req, res) => {
     if (q_services) {
         query.services_provided = { $in: q_services };
     }
-    // if (rating) {
-    //     query.experience = { $gte: rating };
-    // }
+    if (rating) {
+        query.averageRating = { $gte: rating };
+    }
+    
+    if (search) {
+        query.agency_name = search.toLowerCase();
+    }
+
     // if (pricePerHour) {
     //     query['bank_account_details.price_per_hour'] = { $lte: parseFloat(pricePerHour) };
     // }
@@ -47,7 +52,6 @@ router.get('/browse-counselors', async (req, res) => {
     const findPopularCounselor = await Counselor.paginate(query, { ...options });
     const response = responseJson(true, findPopularCounselor, '', 200);
     return res.status(200).json(response);
-
 });
 
 router.get("/service-detail/:id", async (req, res) => {
@@ -64,9 +68,6 @@ router.get("/show/:id", async (req, res) => {
     const response = responseJson(true, { counselorProfile, counselorTeam }, '', 200);
     return res.status(200).json(response);
 })
-
-
-
 
 
 module.exports = router;
