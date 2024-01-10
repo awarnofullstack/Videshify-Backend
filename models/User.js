@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema(
 UserSchema.plugin(mongoosePaginate);
 
 // Custom methods 
-UserSchema.methods.signJWT = function () {
+UserSchema.methods.signJWT = function (props) {
   const user = this;
   if (user) {
     user.password = undefined;
@@ -54,7 +54,7 @@ UserSchema.methods.signJWT = function () {
     user.__v = undefined;
   }
 
-  return jwt.sign({ user }, process.env.SECRET_KEY, {
+  return jwt.sign({ user, ...props }, process.env.SECRET_KEY, {
     expiresIn: '1d',
   });
 }

@@ -59,7 +59,14 @@ router.post("/login", loginValidationChain, async (req, res) => {
     if (!verifyPassword) {
         throw new Error("Invalid credentials, Try again.");
     }
-    const token = user.signJWT();
+
+    let { profileUrl } = await Student.findOne({ user_id: user._id });
+
+    if (!studentProfile) {
+        profileUrl = null;
+    }
+
+    const token = user.signJWT({ profileUrl });
 
     const hasProfile = await Student.findOne({ user_id: user.id }).countDocuments();
 
