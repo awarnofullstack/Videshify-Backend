@@ -44,7 +44,7 @@ router.post("/:id/counselor", async (req, res) => {
     counselor.averageRating = counselor.averageRating || 0;
     counselor.numberOfReviews = counselor.numberOfReviews || 0;
 
-    counselor.averageRating = ((counselor.averageRating * counselor.numberOfReviews) + rating) / (counselor.numberOfReviews + 1);
+    counselor.averageRating = ((counselor.averageRating * counselor.numberOfReviews) + rating) / (counselor.numberOfReviews + 1).toFixed(1);
     counselor.numberOfReviews += 1;
 
     // Save the updated counselor

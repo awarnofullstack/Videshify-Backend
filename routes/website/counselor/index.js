@@ -17,26 +17,27 @@ const CounselorMember = require("../../../models/CounselorMember");
 router.get('/browse-counselors', async (req, res) => {
 
     const {
-        limit, page, search, type, origin_country, q_services, rating, price_per_hour_min, price_per_hour_max
+        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
     } = req.query;
 
     const query = {};
 
-    if (type) {
-        query.organization_type = type.toLowerCase();
-    }
+    // if (type) {
+    //     query.organization_type = type.toLowerCase();
+    // }
     if (origin_country) {
-        query.origin_country = origin_country;
+        query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
     }
-    if (q_services) {
-        query.services_provided = { $in: q_services };
+    if (services) {
+        query.services_provided = { $in: services.split(",") };
     }
+
     if (rating) {
         query.averageRating = { $gte: rating };
     }
-    
+
     if (search) {
-        query.agency_name = search.toLowerCase();
+        query.agency_name = { $regex: `${search}`, $options: 'i' };
     }
 
     // if (pricePerHour) {
