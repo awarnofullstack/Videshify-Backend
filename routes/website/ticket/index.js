@@ -38,6 +38,10 @@ router.get("/", async (req, res) => {
         query.ticketId = { $regex: `${search}`, $options: 'i' }
     }
 
+    // if (search) {
+    //     query.subject = { $regex: `${search}`, $options: 'i' }
+    // }
+
     const tickets = await Ticket.paginate(query, options);
     const response = responseJson(true, tickets, '', 200);
     return res.status(200).json(response);
@@ -65,8 +69,9 @@ router.post("/", createTicketValidationChain, validate, async (req, res) => {
         respond.attachment = makeMoved(req.files.attachment);
     }
 
+    const ticketsCount = await Ticket.find().countDocuments();
 
-    const ticketCreate = new Ticket({ createdBy: id, ...req.body });
+    const ticketCreate = new Ticket({ createdBy: id, ...req.body, ticketId: ticketsCount + 1 });
     ticketCreate.responds.push(respond);
     await ticketCreate.save();
 

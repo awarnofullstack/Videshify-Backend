@@ -61,9 +61,9 @@ router.post("/", createTicketValidationChain, validate, async (req, res) => {
     if (req.files?.attachment) {
         respond.attachment = makeMoved(req.files.attachment);
     }
+    const ticketsCount = await Ticket.find().countDocuments();
 
-
-    const ticketCreate = new Ticket({ createdBy: id, ...req.body });
+    const ticketCreate = new Ticket({ createdBy: id, ...req.body, ticketId: ticketsCount + 1 });
     ticketCreate.responds.push(respond);
     await ticketCreate.save();
 
