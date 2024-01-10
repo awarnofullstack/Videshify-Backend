@@ -59,16 +59,9 @@ router.post("/login", loginValidationChain, async (req, res) => {
     if (!verifyPassword) {
         throw new Error("Invalid credentials, Try again.");
     }
+    const token = user.signJWT();
 
-    let studentProfile = await Student.findOne({ user_id: user._id });
-
-    let profileUrl = {};
-    if (!studentProfile) {
-        profileUrl = null;
-    }
-
-    const token = user.signJWT({ profileUrl });
-
+    const Profile = await Student.findOne({ user_id: user.id }).lean();
     const hasProfile = await Student.findOne({ user_id: user.id }).countDocuments();
 
     const eligibility = {
@@ -76,7 +69,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
         isCompleted: hasProfile ? true : false,
     }
 
-    const response = responseJson(true, { token, user, eligibility }, `You're logged in.`, StatusCodes.OK);
+    const response = responseJson(true, { token, user, eligibility, profileUrl: Profile?.profileUrl || null }, `You're logged in.`, StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
 });
 
