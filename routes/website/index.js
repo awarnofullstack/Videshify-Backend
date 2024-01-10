@@ -14,6 +14,7 @@ const ticket = require("./ticket");
 const community = require("./community");
 const contact = require("./contact");
 const rating = require("./rating");
+const messages = require("./messages");
 
 router.use('/auth', auth);
 router.use('/student', [authenticateToken, authorizeRoles('student')], profile);
@@ -26,5 +27,6 @@ router.use('/ticket', [authenticateToken, authorizeRoles('student')], ticket);
 router.use('/community', [authenticateToken, authorizeRoles('student')], community);
 router.use('/contact', contact);
 router.use('/blog', blog);
+router.use('/messages',[authenticateToken, authorizeRoles('student')], messages);
 
 module.exports = router;
