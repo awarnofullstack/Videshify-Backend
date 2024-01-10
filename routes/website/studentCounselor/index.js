@@ -114,15 +114,15 @@ router.get('/browse-services', async (req, res) => {
 router.get("/:id/service/show", async (req, res) => {
 
     const { id } = req.params;
-    const serviceDetail = await Service.findOne({ _id: id }).lean();
+    const serviceDetail = await Service.findOne({ _id: id }).populate({path: 'counselor', select : 'first_name last_name'});
 
     if (!serviceDetail) {
         throw new Error('Invalid service id requested.');
     }
 
-    const serviceByCounselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).lean();
+    // const serviceByCounselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).lean();
 
-    const response = responseJson(true, { ...serviceDetail, ...serviceByCounselor }, '', 200);
+    const response = responseJson(true, serviceDetail, '', 200);
     return res.status(200).json(response);
 });
 
