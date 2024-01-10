@@ -51,7 +51,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
     const user = await User.findOne({ email });
     console.log(user);
 
-    if (!user || user.role !== 'student') {
+    if (!user || user.role !== 'student' || !user.password) {
         throw new Error("Invalid credentials or no user exist.");
     }
     const verifyPassword = await bcrypt.compare(password, user.password);
