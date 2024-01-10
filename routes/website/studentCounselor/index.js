@@ -16,7 +16,7 @@ const Service = require("../../../models/Service");
 router.get('/mentors', async (req, res) => {
 
     const {
-        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
+        limit, page, search, type, origin_country, services, rating
     } = req.query;
 
     const query = {};
@@ -106,68 +106,91 @@ router.get("/:id/services", async (req, res) => {
     return res.status(200).json(response);
 });
 
-router.get('/browse-counselors', async (req, res) => {
-
-    const {
-        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
-    } = req.query;
-
-    const query = {};
-
-    if (origin_country) {
-        query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
-    }
-    if (services) {
-        query.services_provided = { $in: services.split(",") };
-    }
-
-    if (rating) {
-        query.averageRating = { $gte: rating };
-    }
-
-    if (search) {
-        query.agency_name = { $regex: `${search}`, $options: 'i' };
-    }
-
-    // if (pricePerHour) {
-    //     query['bank_account_details.price_per_hour'] = { $lte: parseFloat(pricePerHour) };
-    // }
-
-    const options = {
-        limit,
-        page,
-        select: { bank_account_details: 0 }
-    }
-
-    const findPopularCounselor = await Counselor.paginate(query, { ...options });
-    const response = responseJson(true, findPopularCounselor, '', 200);
-    return res.status(200).json(response);
-
-});
 
 
 router.get('/browse-services', async (req, res) => {
 
     const {
-        limit, page, search, type, origin_country, services, rating, price_per_hour_min, price_per_hour_max
+        limit, page, search, type, origin_country, services, rating, fromPrice, toPrice
     } = req.query;
 
     const query = {};
 
     if (rating) {
-        query.averageRating = { $gte: rating };
+        query.averageRating = { $gte: parseInt(rating) };
     }
 
     if (search) {
         query.service_name = { $regex: `${search}`, $options: 'i' };
     }
 
+    if (fromPrice && toPrice) {
+        query.$and = [{ price: { $gte: parseInt(fromPrice) || 0 } }, { price: { $lte: parseInt(toPrice) || 0 } }];
+    }
+
+    const orConditions = [];
+
+    if (origin_country) {
+        orConditions.push(
+            { 'counselors.origin_country': { $regex: new RegExp(search, 'i') } },
+        );
+    }
+
+    if (services) {
+        orConditions.push(
+            { 'counselors.services_provided': { $in: services.split(',') } },
+        );
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
+
     const options = {
         limit,
         page,
-        populate: [{ path: 'counselor', select: ['first_name', 'last_name'] }]
     }
-    const servicesList = await Service.paginate(query, options);
+
+    const serviceAggregate = Service.aggregate([
+        {
+            $lookup: {
+                from: 'studentcounselors',
+                localField: 'counselor',
+                foreignField: 'user_id',
+                as: 'counselors',
+                pipeline: [
+                    {
+                        $project: { bank_account_details: 0 }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'counselor',
+                foreignField: '_id',
+                as: 'counselor',
+                pipeline: [
+                    {
+                        $project: { password: 0, updatedAt: 0, createdAt: 0, resetToken: 0, email: 0, approved: 0 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$counselor"
+        },
+        {
+            $match: query
+        },
+        {
+            $project: { counselors: 0 }
+        },
+    ])
+
+
+    const servicesList = await Service.aggregatePaginate(serviceAggregate, options);
     const response = responseJson(true, servicesList, '', 200);
     return res.status(200).json(response);
 
