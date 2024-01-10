@@ -16,10 +16,21 @@ const CommunitySavedPost = require("../../../../models/CommunitySavedPost");
 const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
-    const { limit, page } = req.query;
+    const { limit, page, category, hashtag } = req.query;
     const options = {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
+    }
+
+
+    const query = {};
+
+    if (category && category.length > 0) {
+        query.category = { $regex: category, $options: 'i' }
+    }
+
+    if (hashtag && hashtag.length > 0) {
+        query.text = { $regex: hashtag, $options: 'i' }
     }
 
     const posts =
@@ -92,9 +103,13 @@ router.get("/", async (req, res) => {
                 },
             },
             {
+                $match: query
+            },
+            {
                 $project: {
                     text: 1,
                     content: 1,
+                    category: 1,
                     docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
                     postBy: { $arrayElemAt: ['$authorInfo', 0] },
                     likeCount: 1,
@@ -228,6 +243,7 @@ router.get("/", async (req, res) => {
                             {
                                 postId: '$_id',
                                 text: '$text',
+                                category: "$category",
                                 content: '$content',
                                 createdAt: '$createdAt',
                                 docUrl: '$docUrl',
