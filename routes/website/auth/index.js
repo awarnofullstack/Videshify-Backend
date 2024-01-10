@@ -60,8 +60,9 @@ router.post("/login", loginValidationChain, async (req, res) => {
         throw new Error("Invalid credentials, Try again.");
     }
 
-    let { profileUrl } = await Student.findOne({ user_id: user._id });
+    let studentProfile = await Student.findOne({ user_id: user._id });
 
+    let profileUrl = {};
     if (!studentProfile) {
         profileUrl = null;
     }
