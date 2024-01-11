@@ -48,7 +48,7 @@ router.get('/mentors', async (req, res) => {
 
     const options = {
         limit,
-        page,
+        page : parseInt(page) || 1,
         select: { bank_account_details: 0 },
         populate: [{ path: "user_id", select: "first_name last_name" }]
     }
@@ -115,7 +115,7 @@ router.get("/services-provided", async (req, res) => {
     const query = {};
 
     const options = {
-        limit, page : parseInt(page) || 1,
+        limit, page,
         sort: { _id: -1 },
     }
 
