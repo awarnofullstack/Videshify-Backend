@@ -57,8 +57,8 @@ router.get("/past", async (req, res) => {
     const query = { student: req.user._id };
     query.start_time = { $lt: new Date() }
 
-    if (date) {
-        query.start_time = { $eq: date }
+    if (date  && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $lte: date }
     }
 
     const schedules = await Schedule.paginate(query, options);
@@ -80,8 +80,8 @@ router.get("/upcoming", async (req, res) => {
     const query = { student: req.user._id };
     query.start_time = { $gte: new Date() }
 
-    if (date) {
-        query.start_time = { $eq: date }
+    if (date  && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $gte: date }
     }
 
     const schedules = await Schedule.paginate(query, options);
