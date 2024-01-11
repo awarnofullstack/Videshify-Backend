@@ -74,6 +74,12 @@ router.get('/mentors', async (req, res) => {
             $unwind: '$user'
         },
         {
+            $project: { user_id: 0 }
+        },
+        {
+            $addFields: { user_id: "$user" }
+        },
+        {
             $project: { bank_account_details: 0 }
         },
         {
