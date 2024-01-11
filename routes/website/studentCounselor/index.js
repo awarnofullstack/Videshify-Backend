@@ -115,7 +115,7 @@ router.get("/services-provided", async (req, res) => {
     const query = {};
 
     const options = {
-        limit, page,
+        limit, page : parseInt(page || 0),
         sort: { _id: -1 },
     }
 
