@@ -43,7 +43,7 @@ router.get('/all', async (req, res) => {
         populate: [{ path: 'student', select: unSelectFields }],
     }
 
-    const query = { student: "651fd267749fdc98150cdb13" };
+    const query = { counselor: new ObjectId(req.user._id) };
 
     const data = await StudentInCounselor.paginate(query, { ...options });
 
