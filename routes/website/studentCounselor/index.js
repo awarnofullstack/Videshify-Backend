@@ -25,6 +25,7 @@ router.get('/mentors', async (req, res) => {
     if (origin_country) {
         query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
     }
+
     if (services) {
         query.services_provided = { $in: services.split(",") };
     }
@@ -39,6 +40,8 @@ router.get('/mentors', async (req, res) => {
         orConditions.push(
             { 'user.first_name': { $regex: new RegExp(search, 'i') } },
             { 'user.last_name': { $regex: new RegExp(search, 'i') } },
+            { origin_country: { $regex: new RegExp(search, 'i') } },
+            { services_provided: { $in: search.split(",") } },
         );
     }
 
@@ -92,8 +95,6 @@ router.get('/mentors', async (req, res) => {
     return res.status(200).json(response);
 });
 
-
-
 router.get("/:id/show", async (req, res) => {
     const { id } = req.params;
     let counselorProfile = await StudentCounselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
@@ -127,7 +128,7 @@ router.get("/services-provided", async (req, res) => {
 
 
     if (search) {
-        query.services_provided = { $in: search.split(',') }
+        query.services_provided = { $elemMatch: { $regex: new RegExp(search, 'i') } }
     }
 
     const aggregatePipeline = [
@@ -171,7 +172,8 @@ router.get("/services-provided", async (req, res) => {
 
     servicesOffered = await StudentCounselor.aggregatePaginate(servicesOffered, options)
 
-    const services = servicesOffered?.docs[0]?.services_provided || [];
+    const regex = new RegExp(search, 'i');
+    const services = servicesOffered?.docs[0]?.services_provided?.filter((el) => regex.test(el)) || [];
 
     const response = responseJson(true, { ...servicesOffered, docs: services }, '', 200);
     return res.status(200).json(response);

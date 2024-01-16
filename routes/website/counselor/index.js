@@ -36,8 +36,19 @@ router.get('/browse-counselors', async (req, res) => {
         query.averageRating = { $gte: rating };
     }
 
+    const orConditions = [];
+
     if (search) {
-        query.agency_name = { $regex: `${search}`, $options: 'i' };
+        orConditions.push(
+            { agency_name: { $regex: new RegExp(search, 'i') } },
+            { origin_country: { $regex: new RegExp(search, 'i') } },
+            { city: { $regex: new RegExp(search, 'i') } },
+            { services_provided: { $in: search.split(",") } },
+        );
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
     }
 
     // if (pricePerHour) {
@@ -114,7 +125,8 @@ router.get("/services-provided", async (req, res) => {
 
     servicesOffered = await Counselor.aggregatePaginate(servicesOffered, options)
 
-    const services = servicesOffered?.docs[0]?.services_provided || [];
+    const regex = new RegExp(search, 'i');
+    const services = servicesOffered?.docs[0]?.services_provided?.filter((el) => regex.test(el)) || [];
 
     const response = responseJson(true, { ...servicesOffered, docs: services }, '', 200);
     return res.status(200).json(response);
