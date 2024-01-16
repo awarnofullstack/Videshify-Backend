@@ -30,7 +30,6 @@ router.get('/all', async (req, res) => {
 
     const unSelectFields = {
         resetToken: 0,
-        createdAt: 0,
         updatedAt: 0,
         password: 0,
         resetTokenExpiry: 0,
