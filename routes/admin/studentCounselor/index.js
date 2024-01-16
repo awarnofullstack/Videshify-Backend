@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'user_id', select: 'first_name last_name email phone role' }]
+        populate: [{ path: 'user_id', select: 'first_name last_name email phone role approved' }]
     }
 
     const counselors = await StudentCounselor.paginate({}, options);
