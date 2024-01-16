@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
     }
 
     if (search) {
-        query.ticketId = { $regex: `${search}`, $options: 'i' }
+        query.ticketId = search
     }
 
     // if (search) {
