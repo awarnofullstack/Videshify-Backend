@@ -74,7 +74,7 @@ router.get("/", async (req, res) => {
             {
                 $lookup: {
                     from: 'communityfollows',
-                    let: { authorId: { $arrayElemAt: ['$authorInfo._id', 0] }, authorizedUserId: req.user._id },
+                    let: { authorId: { $arrayElemAt: ['$authorInfo._id', 0] }, authorizedUserId: new ObjectId(req.user._id) },
                     pipeline: [
                         {
                             $match: {
