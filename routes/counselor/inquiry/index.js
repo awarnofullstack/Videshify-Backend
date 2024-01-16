@@ -23,11 +23,10 @@ router.get("/", async (req, res) => {
         resetTokenExpiry: 0,
         __v: 0
     }
-    
+
     const options = {
         limit,
         page,
-        select: { responds: 0 },
         sort: { _id: -1 },
         populate: [{ path: 'student', select: unSelectFields }]
     }
@@ -45,7 +44,16 @@ router.get("/:id", async (req, res) => {
         throw new Error("Invalid document id, no record found.");
     }
 
-    const response = responseJson(true, inquiry, '', 200);
+    inquiry.responds.forEach(respond => {
+        if (respond.sender === 'student') {
+            respond.isRead = true;
+        }
+    });
+
+    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $set: { responds: inquiry.responds } }, { new: true });
+
+
+    const response = responseJson(true, inquiryUpdate, '', 200);
     return res.status(200).json(response);
 });
 

@@ -40,7 +40,16 @@ router.get("/:id", async (req, res) => {
         throw new Error("Invalid document id, no record found.");
     }
 
-    const response = responseJson(true, inquiry, '', 200);
+    inquiry.responds.forEach(respond => {
+        if (respond.sender === 'counselor') {
+            respond.isRead = true;
+        }
+    });
+
+    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $set: { responds: inquiry.responds } }, { new: true });
+
+
+    const response = responseJson(true, inquiryUpdate, '', 200);
     return res.status(200).json(response);
 });
 
@@ -54,9 +63,9 @@ router.get("/:id/quote", async (req, res) => {
     }
 
     const quote = inquiry.responds.id(id);
-    const counselor = await Counselor.findOne({user_id : inquiry.counselor}).select('agency_name user_id').lean();
+    const counselor = await Counselor.findOne({ user_id: inquiry.counselor }).select('agency_name user_id').lean();
 
-    const response = responseJson(true, {quote, booking_with: counselor}, '', 200);
+    const response = responseJson(true, { quote, booking_with: counselor }, '', 200);
     return res.status(200).json(response);
 });
 
@@ -96,7 +105,6 @@ router.put("/:id", async (req, res) => {
     if (!inquiry) {
         throw new Error("Invalid document id, no record found.");
     }
-
 
     const newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'student' }
 

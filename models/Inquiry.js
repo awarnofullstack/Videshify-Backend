@@ -37,6 +37,10 @@ const RespondSchema = new Schema({
         enum: ['counselor', 'student'],
         required: true
     },
+    isRead: {
+        type: Boolean,
+        default: false,
+    },
     start_time: {
         type: Date,
         default: null,
@@ -76,5 +80,26 @@ const InquirySchema = new Schema({
     });
 
 InquirySchema.plugin(mongoosePaginate);
+
+
+InquirySchema.set('toJSON', { virtuals: true })
+
+InquirySchema.virtual('unreadRespondsStudentCount').get(function () {
+    if (this.responds && Array.isArray(this.responds)) {
+        const unreadResponds = this.responds.filter(respond => (!respond.isRead && respond.sender !== 'student'));
+        return unreadResponds.length;
+    } else {
+        return 0;
+    }
+});
+
+InquirySchema.virtual('unreadRespondsCounselorCount').get(function () {
+    if (this.responds && Array.isArray(this.responds)) {
+        const unreadResponds = this.responds.filter(respond => (!respond.isRead && respond.sender == 'student'));
+        return unreadResponds.length;
+    } else {
+        return 0;
+    }
+});
 
 module.exports = mongoose.model('Enquiry', InquirySchema);
