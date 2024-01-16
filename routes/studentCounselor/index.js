@@ -8,6 +8,7 @@ const schedule = require("./schedule");
 const ticket = require("./ticket");
 const community = require("./community");
 const service = require("./services");
+const message = require("./messages");
 
 const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../middleware/authHandler");
 
@@ -18,5 +19,6 @@ router.use('/schedule', [authenticateToken, authorizeRoles('student counselor'),
 router.use('/service', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], service);
 router.use('/ticket', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], ticket);
 router.use('/community', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], community);
+router.use('/message', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], message);
 
 module.exports = router;

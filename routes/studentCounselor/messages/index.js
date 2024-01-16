@@ -17,7 +17,7 @@ router.get('/all', async (req, res) => {
         page,
     }
 
-    const query = { student: new ObjectId(req.user._id) };
+    const query = { counselor: new ObjectId(req.user._id) };
 
     const orConditions = [];
 
@@ -31,11 +31,11 @@ router.get('/all', async (req, res) => {
         query.$or = orConditions;
     }
 
-    const counselors = StudentInCounselor.aggregate([
+    const students = StudentInCounselor.aggregate([
         {
             $lookup: {
                 from: 'users',
-                localField: 'counselor',
+                localField: 'student',
                 foreignField: '_id',
                 as: 'user',
                 pipeline: [
@@ -50,29 +50,13 @@ router.get('/all', async (req, res) => {
         },
         {
             $lookup: {
-                from: 'counselors',
-                localField: 'counselor',
+                from: 'students',
+                localField: 'student',
                 foreignField: 'user_id',
-                as: 'counselors',
+                as: 'students',
                 pipeline: [
                     {
-                        $addFields: { name: '$agency_name', profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
-                    },
-                    {
-                        $project: { name: 1, profile: 1 }
-                    },
-                ]
-            },
-        },
-        {
-            $lookup: {
-                from: 'studentcounselors',
-                localField: 'counselor',
-                foreignField: 'user_id',
-                as: 'studentcounselors',
-                pipeline: [
-                    {
-                        $addFields: { name: { $arrayElemAt: ['$user.name', 0] }, profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
+                        $addFields: { name: '$preferred_name', profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
                     },
                     {
                         $project: { name: 1, profile: 1 }
@@ -85,8 +69,7 @@ router.get('/all', async (req, res) => {
                 nonEmptyFields: {
                     $filter: {
                         input: [
-                            { $arrayElemAt: ["$counselors", 0] },
-                            { $arrayElemAt: ["$studentcounselors", 0] },
+                            { $arrayElemAt: ["$students", 0] },
                         ],
                         as: 'field',
                         cond: { $ne: ['$$field', []] },
@@ -117,8 +100,8 @@ router.get('/all', async (req, res) => {
                     $mergeObjects: [
                         { $arrayElemAt: ['$nonEmptyFields', 0] },
                         {
-                            counselor: '$user',
-                            student: '$student',
+                            student: '$user',
+                            counselor: '$counselor',
                         },
                     ],
                 },
@@ -126,7 +109,7 @@ router.get('/all', async (req, res) => {
         },
     ]);
 
-    const data = await StudentInCounselor.aggregatePaginate(counselors, options);
+    const data = await StudentInCounselor.aggregatePaginate(students, options);
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
