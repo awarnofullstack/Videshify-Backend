@@ -41,6 +41,7 @@ router.get('/mentors', async (req, res) => {
             { 'user.first_name': { $regex: new RegExp(search, 'i') } },
             { 'user.last_name': { $regex: new RegExp(search, 'i') } },
             { origin_country: { $regex: new RegExp(search, 'i') } },
+            { city: { $regex: new RegExp(search, 'i') } },
             { services_provided: { $elemMatch: { $regex: new RegExp(search, 'i') } } },
         );
     }
