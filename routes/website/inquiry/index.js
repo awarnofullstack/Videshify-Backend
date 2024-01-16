@@ -46,7 +46,7 @@ router.get("/:id", async (req, res) => {
         }
     });
 
-    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $set: { responds: inquiry.responds } }, { new: true });
+    const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $set: { responds: inquiry.responds } }, { new: true }).populate('counselor', 'first_name last_name');
 
 
     const response = responseJson(true, inquiryUpdate, '', 200);
