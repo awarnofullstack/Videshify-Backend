@@ -153,9 +153,9 @@ router.get('/:id/reports', async (req, res) => {
         upcomingSchedules: 0,
         pageViews: 0,
         totalServices: 0,
-    }    
-    const counselor = await Counselor.findOne({user_id : id});
-    if(!counselor){
+    }
+    const counselor = await Counselor.findOne({ user_id: id });
+    if (!counselor) {
         throw new Error('counselor id is invalid or missing.');
     }
 

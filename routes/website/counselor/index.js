@@ -105,7 +105,7 @@ router.get("/services-provided", async (req, res) => {
         {
             $project: {
                 _id: 0,
-                services_provided: { $reduce: { input: '$services_provided', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } }
+                services_provided: { $setUnion: { $reduce: { input: '$services_provided', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } } }
             }
         },
     ];

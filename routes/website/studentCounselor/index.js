@@ -48,7 +48,7 @@ router.get('/mentors', async (req, res) => {
 
     const options = {
         limit,
-        page : parseInt(page) || 1,
+        page: parseInt(page) || 1,
         select: { bank_account_details: 0 },
         populate: [{ path: "user_id", select: "first_name last_name" }]
     }
@@ -161,7 +161,7 @@ router.get("/services-provided", async (req, res) => {
         {
             $project: {
                 _id: 0,
-                services_provided: { $reduce: { input: '$services_provided', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } }
+                services_provided: { $setUnion: { $reduce: { input: '$services_provided', initialValue: [], in: { $concatArrays: ['$$value', '$$this'] } } } }
             }
         },
         // Add other stages as needed

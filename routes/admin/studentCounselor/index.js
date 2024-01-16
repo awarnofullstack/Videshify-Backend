@@ -140,6 +140,17 @@ router.get("/:id/approve", async (req, res) => {
 });
 
 
+router.delete("/:id/delete", async (req, res) => {
+    const { id } = req.params;
+
+    const findUser = await User.findById(id).deleteOne();
+    const findCounselor = await StudentCounselor.findOne({user_id: id}).deleteOne();
+
+    const response = responseJson(true, null, 'Account deleted', 200, []);
+    return res.status(200).json(response);
+});
+
+
 router.get('/:id/reports', async (req, res) => {
     const { id } = req.params;
 
