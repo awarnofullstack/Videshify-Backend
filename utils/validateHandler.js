@@ -6,7 +6,7 @@ const validate = (req, res, next) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
+        const response = responseJson(false, null, `${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
         return res.status(StatusCodes.OK).json(response);
     }
 
