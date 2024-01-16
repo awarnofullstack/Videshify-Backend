@@ -43,7 +43,7 @@ router.get('/browse-counselors', async (req, res) => {
             { agency_name: { $regex: new RegExp(search, 'i') } },
             { origin_country: { $regex: new RegExp(search, 'i') } },
             { city: { $regex: new RegExp(search, 'i') } },
-            { services_provided: { $in: search.split(",") } },
+            { services_provided: { $elemMatch: { $regex: new RegExp(search, 'i') } } },
         );
     }
 
