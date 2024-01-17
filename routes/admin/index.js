@@ -6,6 +6,7 @@ const studentAuth = require("./students");
 const counselor = require("./counselor");
 const studentCounselor = require("./studentCounselor");
 const blogs = require("./blogs");
+const plans = require("./plans");
 const report = require("./reports");
 
 
@@ -16,6 +17,7 @@ router.use('/student', [authenticateToken, authorizeRoles('admin')], studentAuth
 router.use('/counselor', [authenticateToken, authorizeRoles('admin')], counselor);
 router.use('/student-counselor', [authenticateToken, authorizeRoles('admin')], studentCounselor);
 router.use('/blog', [authenticateToken, authorizeRoles('admin')], blogs);
+router.use('/plans', [authenticateToken, authorizeRoles('admin')], plans);
 router.use('/report', [authenticateToken, authorizeRoles('admin')], report);
 
 module.exports = router;

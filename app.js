@@ -4,6 +4,11 @@ const mongoose = require("mongoose");
 require("express-async-errors");
 const fileUpload = require('express-fileupload');
 
+
+// Cron JOBS
+const { planExpireJon } = require("./jobs/planExpireJob")
+
+
 // Error Handler & Not Found Handler Middleware
 const notFoundMiddleware = require("./middleware/notFound");
 const errorHandlerMiddleware = require("./middleware/errorHandler");
@@ -101,6 +106,9 @@ app.use("/api", StudentRouter);
 -------------------- Web Routes & Controller ----------------------
 *****************************************************************************************
 */
+
+// Cron JOBS 
+planExpireJon();
 
 app.use(errorHandlerMiddleware);
 app.use(notFoundMiddleware);

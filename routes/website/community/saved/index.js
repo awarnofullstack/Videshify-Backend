@@ -249,9 +249,6 @@ router.get("/", async (req, res) => {
             },
         },
     ]);
-
-
-
     const communityPost = await CommunityPost.aggregatePaginate(savedPost, options)
 
     const response = responseJson(true, communityPost, '', 200);

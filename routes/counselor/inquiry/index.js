@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const moment = require("moment")
+
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 
 const router = express.Router();
@@ -35,6 +37,19 @@ router.get("/", async (req, res) => {
     const response = responseJson(true, inquiries, '', 200);
     return res.status(200).json(response);
 });
+
+
+
+router.get("/tile", async (req, res) => {
+    const recentWeek = moment().subtract(7, 'days')
+
+    const totalInquiry = await Inquiry.find({ counselor: new ObjectId(req.user._id) }).countDocuments();
+    const RecentAdded = await Inquiry.find({ createdAt: { $gte: recentWeek }, counselor: new ObjectId(req.user._id) }).countDocuments();
+    const totalResolved = await Inquiry.find({ status: 'closed', counselor: new ObjectId(req.user._id) }).countDocuments();
+    const response = responseJson(true, { totalInquiry, RecentAdded, totalResolved }, '', 200);
+    return res.status(200).json(response);
+});
+
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;

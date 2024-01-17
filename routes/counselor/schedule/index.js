@@ -1,4 +1,5 @@
 const express = require("express");
+const moment = require("moment")
 
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
@@ -12,6 +13,7 @@ const Schedule = require("../../../models/Schedule");
 const { makeMoved } = require("../../../utils/fileUpload");
 const { createMeeting } = require("../../../utils/createMeeting");
 const { genZoomToken } = require("../../../middleware/zoomAuthToken");
+const { default: mongoose } = require("mongoose");
 
 const createScheduleValidationChain = [
     body('name').notEmpty().trim().toLowerCase().withMessage('name is required field.'),
@@ -24,10 +26,11 @@ const assignMemberValidationChain = [
     body('member_id').notEmpty().trim().withMessage('Member id is required field.'),
 ];
 
+const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -35,14 +38,34 @@ router.get("/", async (req, res) => {
         populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
-    const members = await Schedule.paginate({ counselor: req.user._id }, options);
+    const query = { counselor: new ObjectId(req.user._id) }
+
+    if (date && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $gte: date }
+    }
+
+    const members = await Schedule.paginate(query, options);
     const response = responseJson(true, members, '', 200);
     return res.status(200).json(response);
 });
 
+
+router.get("/tile", async (req, res) => {
+    const recentWeek = moment().subtract(7, 'days')
+
+    const totalBookings = await Schedule.find().countDocuments();
+    const RecentAdded = await Schedule.find({ createdAt: { $gte: recentWeek } }).countDocuments();
+
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
+    const response = responseJson(true, { totalBookings, RecentAdded, totalUpcomings }, '', 200);
+    return res.status(200).json(response);
+});
+
+
+
 router.get("/past", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -50,8 +73,12 @@ router.get("/past", async (req, res) => {
         populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
-    const query = { counselor: req.user._id };
+    const query = { counselor: new ObjectId(req.user._id) };
     query.start_time = { $lt: new Date() }
+
+    if (date && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $lte: date }
+    }
 
     const members = await Schedule.paginate(query, options);
     const response = responseJson(true, members, '', 200);
@@ -60,7 +87,7 @@ router.get("/past", async (req, res) => {
 
 router.get("/upcoming", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -68,9 +95,13 @@ router.get("/upcoming", async (req, res) => {
         populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
     }
 
-    console.log(req.user);
     const query = { counselor: req.user._id };
     query.start_time = { $gte: new Date() }
+
+
+    if (date && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $gte: date }
+    }
 
     const members = await Schedule.paginate(query, options);
     const response = responseJson(true, members, '', 200);
@@ -163,7 +194,57 @@ router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req,
 });
 
 
+router.get("/re-schedules", async (req, res) => {
 
+    const { limit, page } = req.query;
+    const options = {
+        limit,
+        page,
+        sort: { _id: -1 },
+        populate: [{ path: "student" }]
+    }
 
+    const query = { counselor: req.user._id, is_reschedule: true };
+    query.start_time = { $gte: new Date() }
+
+    const schedules = await Schedule.paginate(query, options);
+    const response = responseJson(true, schedules, '', 200);
+    return res.status(200).json(response);
+});
+
+router.put("/:id/re-schedule", async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await Schedule.findOne({ _id: id });
+
+    if (!schedule) {
+        throw new Error('You are trying to update non-existing document.');
+    }
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body, is_reschedule: true, reschedule_by: 'counselor' } }, { new: true });
+
+    const response = responseJson(true, updatedSchedule, 'Re-Schedule requested successfuly.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.put("/:id/re-schedule/accept", async (req, res) => {
+    const { id } = req.params;
+
+    const schedule = await Schedule.findOne({ _id: id });
+
+    if (!schedule) {
+        throw new Error('You are trying to update non-existing document.');
+    }
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, {
+        $set: {
+            start_time: schedule.reschedule_at,
+            is_reschedule: false,
+            reschedule_at: null,
+            reschedule_by: null
+        }
+    }, { new: true });
+
+    const response = responseJson(true, updatedSchedule, 'Re-Schedule updated successfuly.', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
 
 module.exports = router;

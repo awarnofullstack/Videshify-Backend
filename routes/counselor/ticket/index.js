@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const moment = require("moment")
+
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
 const validate = require("../../../utils/validateHandler");
@@ -43,6 +45,22 @@ router.get("/", async (req, res) => {
     const response = responseJson(true, tickets, '', 200);
     return res.status(200).json(response);
 });
+
+
+router.get("/tile", async (req, res) => {
+
+    let lastTicketRaised = await Ticket.findOne({ createdBy: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean();
+    const pendingTickets = await Ticket.find({ createdBy: new ObjectId(req.user._id), status: 'open' }).countDocuments();
+    const resolvedTickets = await Ticket.find({ createdBy: new ObjectId(req.user._id), status: 'closed' }).countDocuments();
+
+    if (lastTicketRaised) {
+        lastTicketRaised = moment(lastTicketRaised.createdAt).format('DD MMM YYYY')
+    }
+
+    const response = responseJson(true, { lastTicketRaised, pendingTickets, resolvedTickets }, '', 200);
+    return res.status(200).json(response);
+});
+
 
 router.get("/:id", async (req, res) => {
     const { id } = req.params;

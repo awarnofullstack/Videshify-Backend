@@ -27,6 +27,7 @@
     "mongoose": "^7.4.1",
     "mongoose-aggregate-paginate-v2": "^1.0.6",
     "mongoose-paginate-v2": "^1.7.31",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.4",
     "redis": "^4.6.7"
   }

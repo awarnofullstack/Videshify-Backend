@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { StatusCodes } = require("http-status-codes");
 
 const responseJson = require("../../../utils/responseJson");
@@ -6,6 +7,11 @@ const User = require("../../../models/User");
 const Counselor = require("../../../models/Counselor");
 
 const router = express.Router();
+
+
+const { makeMoved } = require("../../../utils/fileUpload");
+
+const ObjectId = mongoose.Types.ObjectId;
 
 router.get('/', async (req, res) => {
 
@@ -45,6 +51,23 @@ router.post('/complete', async (req, res) => {
 
     await counselorRef.updateOne(body);
     const response = responseJson(true, { profile: counselorRef, eligibility }, 'Profile Updated', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+router.post('/profile', async (req, res) => {
+
+    const counselorRef = await Counselor.findOne({ user_id: new ObjectId(req.user._id) }).lean();
+
+    if (!counselorRef) {
+        throw new Error('Invalid counselor request')
+    }
+
+    if (req.files?.profile) {
+        req.body.profile = makeMoved(req.files.profile);
+    }
+
+    const counselor = await Counselor.findByIdAndUpdate(counselorRef._id, { $set: { profile: req.body.profile } }, { new: true });
+    const response = responseJson(true, counselor, 'Profile Updated', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
 

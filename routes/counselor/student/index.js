@@ -1,6 +1,7 @@
 const express = require("express");
 const { StatusCodes } = require("http-status-codes");
 const mongoose = require("mongoose");
+const moment = require("moment")
 
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
@@ -20,6 +21,8 @@ const StudentResearchPrep = require("../../../models/StudentResearchPrepCareer")
 
 const StudentCurricularActivity = require("../../../models/StudentExtraCurricularActivity")
 const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity")
+
+const Schedule = require("../../../models/Schedule")
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -53,6 +56,18 @@ router.get('/all', async (req, res) => {
     }
     const response = responseJson(true, data, '', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
+});
+
+
+router.get("/tile", async (req, res) => {
+    const recentWeek = moment().subtract(7, 'days')
+
+    const totalStudents = await User.find({ role: 'student' }).countDocuments();
+    const RecentAdded = await User.find({ createdAt: { $gte: recentWeek } }).countDocuments();
+
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
+    const response = responseJson(true, { totalStudents, RecentAdded, totalUpcomings }, '', 200);
+    return res.status(200).json(response);
 });
 
 router.post('/add', async (req, res) => {
