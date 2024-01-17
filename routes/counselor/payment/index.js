@@ -32,22 +32,22 @@ router.get("/tile", async (req, res) => {
 
     const payments = await Payment.aggregate([
         {
-            $match: { user: new ObjectId(req.user._id) }
+            $match: { $and: [{ user: new ObjectId(req.user._id) }, { type: 'debit' }] }
         },
         {
             $group: {
-                _id: null,
-                totalAmount: { $sum: '$amount' }
+                _id: "$user",
+                sum: { $sum: '$amount' }
             }
         },
         {
-            $project: { totalAmount: { $arrayElemAt: ['$totalAmount', 0] } }
+            $project: { _id: 0, sum: 1 }
         }
-    ]);
+    ]); 
 
     const recentPayment = await Payment.findOne({ user: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean()
 
-    const response = responseJson(true, { totalAmount: payments, recentPayment: recentPayment?.amount || 0 }, '', 200);
+    const response = responseJson(true, { totalAmount: payments[0]?.sum, recentPayment: recentPayment?.amount || 0 }, '', 200);
     return res.status(200).json(response);
 });
 
