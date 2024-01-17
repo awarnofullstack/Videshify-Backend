@@ -17,8 +17,9 @@ const ServiceRating = require("../../../models/ServiceRating");
 const Service = require("../../../models/Service");
 const StudentCounselor = require("../../../models/StudentCounselor");
 
+const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 
-router.post("/:id/counselor", async (req, res) => {
+router.post("/:id/counselor",[authenticateToken, authorizeRoles('student')], async (req, res) => {
 
     const { id } = req.params;
     const { rating, reviewText } = req.body;
@@ -55,8 +56,7 @@ router.post("/:id/counselor", async (req, res) => {
 });
 
 
-
-router.post("/:id/student-counselor", async (req, res) => {
+router.post("/:id/student-counselor",[authenticateToken, authorizeRoles('student')], async (req, res) => {
 
     const { id } = req.params;
     const { rating, reviewText } = req.body;
@@ -89,8 +89,7 @@ router.post("/:id/student-counselor", async (req, res) => {
 });
 
 
-
-router.post("/:id/service", async (req, res) => {
+router.post("/:id/service",[authenticateToken, authorizeRoles('student')], async (req, res) => {
 
     const { id } = req.params;
     const { rating, reviewText } = req.body;
