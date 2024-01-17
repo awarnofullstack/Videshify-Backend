@@ -82,7 +82,7 @@ router.get("/services-provided", async (req, res) => {
 
 
     if (search) {
-        query.services_provided = { $in: search.split(',') }
+        query.services_provided = { $elemMatch: { $regex: new RegExp(search, 'i') } }
     }
 
     const aggregatePipeline = [
