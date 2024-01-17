@@ -7,9 +7,39 @@ const responseJson = require("../../../utils/responseJson");
 
 const User = require("../../../models/User");
 const Schedule = require("../../../models/Schedule");
+const Counselor = require("../../../models/Counselor");
+const WalletTransaction = require("../../../models/WalletTransaction");
 
 const ObjectId = mongoose.Types.ObjectId;
 
+
+router.get("/payments", async (req, res) => {
+
+    const counselor = await Counselor.findOne({ user_id: new ObjectId(req.user._id) }).lean();
+
+    const lastReceived = await WalletTransaction.findOne({ user: new ObjectId(req.user._id), type: 'credit' }).lean();
+
+    const totalReceived = await WalletTransaction.aggregate([
+        {
+            $match: { $and: [{ user: new ObjectId(req.user._id) }, { type: 'credit' }] }
+        },
+        {
+            $group: {
+                _id: "$user",
+                sum: { $sum: '$amount' }
+            }
+        },
+        {
+            $project: { _id: 0, sum: 1 }
+        }
+    ]);
+
+    const balance = counselor?.walletBalance;
+
+
+    const response = responseJson(true, { totalReceived: totalReceived[0]?.sum || 0, lastReceived: lastReceived?.amount || 0, remainBalance: balance || 0 }, '', 200);
+    return res.status(200).json(response);
+});
 
 router.get("/counselor-student", async (req, res) => {
 
@@ -18,6 +48,7 @@ router.get("/counselor-student", async (req, res) => {
     const response = responseJson(true, { totalStudents, totalCounselors }, '', 200);
     return res.status(200).json(response);
 });
+
 
 router.get("/bookings", async (req, res) => {
 
