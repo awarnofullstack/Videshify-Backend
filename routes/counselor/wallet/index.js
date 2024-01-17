@@ -33,9 +33,26 @@ router.get("/tile", async (req, res) => {
 
     const payments = await Counselor.findOne({ user_id: new ObjectId(req.user._id) }).lean()
 
-    const recentPayment = await WalletTransaction.findOne({ user: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean()
+    const recentPayment = await WalletTransaction.findOne({ user: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean();
 
-    const response = responseJson(true, { totalAmount: payments?.walletBalance || 0, recentPayment: recentPayment?.amount || 0 }, '', 200);
+    // const recentPayment = await WalletTransaction.findOne({ user: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean()
+    const withdrawn = await WalletTransaction.aggregate([
+        {
+            $match: { $and: [{ user: new ObjectId(req.user._id) }, { type: 'debit' }] }
+        },
+        {
+            $group: {
+                _id: "$user",
+                sum: { $sum: '$amount' }
+            }
+        },
+        {
+            $project: { _id: 0, sum: 1 }
+        }
+    ]); 
+
+
+    const response = responseJson(true, { totalAmount: payments?.walletBalance || 0, recentPayment: recentPayment?.amount || 0, totalWithdraw : withdrawn[0]?.sum || 0 }, '', 200);
     return res.status(200).json(response);
 });
 
