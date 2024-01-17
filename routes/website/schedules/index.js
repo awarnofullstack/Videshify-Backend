@@ -19,6 +19,7 @@ const { assignSelf } = require("../../../utils/createMeeting");
 const adminCommissionRate = require("../../../utils/commission");
 const StudentCounselor = require("../../../models/StudentCounselor");
 const Counselor = require("../../../models/Counselor");
+const WalletTransaction = require("../../../models/WalletTransaction");
 
 
 const createScheduleValidationChain = [
