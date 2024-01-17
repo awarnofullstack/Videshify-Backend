@@ -19,6 +19,13 @@ router.get("/", async (req, res) => {
     return res.status(200).json(response);
 });
 
+router.get("/:id/show", async (req, res) => {
+    const { id } = req.params;
+    const plans = await PlanBilling.findById(id);
+    const response = responseJson(true, plans, '', 200);
+    return res.status(200).json(response);
+});
+
 router.get("/billings", async (req, res) => {
 
     const { limit, page, search } = req.query;
