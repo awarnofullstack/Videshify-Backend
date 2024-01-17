@@ -126,8 +126,6 @@ router.post("/:id/service", async (req, res) => {
     return res.status(200).json(response);
 });
 
-
-
 router.get("/:id/counselor", async (req, res) => {
 
     const { id } = req.params;
@@ -142,6 +140,48 @@ router.get("/:id/counselor", async (req, res) => {
     const reviews = await Rating.paginate({ counselor: id }, options);
 
     const response = responseJson(true, reviews, '', 200);
+    return res.status(200).json(response);
+});
+
+router.get("/:id/counselor/graph", async (req, res) => {
+
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const options = {
+        page,
+        limit,
+        populate: [{ path: 'rateBy' }]
+    }
+
+    // Create a new review
+    const ratingStats = await Rating.aggregate([
+        {
+            $match: { counselor: new ObjectId(id) }
+        },
+        {
+            $group: {
+                _id: '$rating',
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { _id: -1 } // Sort by rating value in descending order
+        }
+    ]);
+
+    const totalRatings = ratingStats.reduce((total, stat) => total + stat.count, 0);
+
+    // Prepare data for presentation, e.g., for a graph
+    const presentationData = Array.from({ length: 5 }, (_, index) => {
+        const existingStat = ratingStats.find(stat => stat._id === index + 1);
+        return {
+            rating: index + 1,
+            count: existingStat ? existingStat.count : 0,
+            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+        };
+    });
+
+    const response = responseJson(true, presentationData, '', 200);
     return res.status(200).json(response);
 });
 
@@ -160,6 +200,48 @@ router.get("/:id/student-counselor", async (req, res) => {
     return res.status(200).json(response);
 });
 
+router.get("/:id/student-counselor/graph", async (req, res) => {
+
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const options = {
+        page,
+        limit,
+        populate: [{ path: 'rateBy' }]
+    }
+
+    // Create a new review
+    const ratingStats = await Rating.aggregate([
+        {
+            $match: { counselor: new ObjectId(id) }
+        },
+        {
+            $group: {
+                _id: '$rating',
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { _id: -1 } // Sort by rating value in descending order
+        }
+    ]);
+
+    const totalRatings = ratingStats.reduce((total, stat) => total + stat.count, 0);
+
+    // Prepare data for presentation, e.g., for a graph
+    const presentationData = Array.from({ length: 5 }, (_, index) => {
+        const existingStat = ratingStats.find(stat => stat._id === index + 1);
+        return {
+            rating: index + 1,
+            count: existingStat ? existingStat.count : 0,
+            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+        };
+    });
+
+    const response = responseJson(true, presentationData, '', 200);
+    return res.status(200).json(response);
+});
+
 router.get("/:id/service", async (req, res) => {
 
     const { id } = req.params;
@@ -174,6 +256,46 @@ router.get("/:id/service", async (req, res) => {
     const reviews = await ServiceRating.paginate({ service: id }, options);
 
     const response = responseJson(true, reviews, '', 200);
+    return res.status(200).json(response);
+});
+
+router.get("/:id/service/graph", async (req, res) => {
+
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const options = {
+        page,
+        limit,
+        populate: [{ path: 'rateBy' }]
+    }
+
+    // Create a new review
+    const ratingStats = await ServiceRating.aggregate([
+        
+        {
+            $group: {
+                _id: '$rating',
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { _id: -1 } // Sort by rating value in descending order
+        }
+    ]);
+
+    const totalRatings = ratingStats.reduce((total, stat) => total + stat.count, 0);
+
+    // Prepare data for presentation, e.g., for a graph
+    const presentationData = Array.from({ length: 5 }, (_, index) => {
+        const existingStat = ratingStats.find(stat => stat._id === index + 1);
+        return {
+            rating: index + 1,
+            count: existingStat ? existingStat.count : 0,
+            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+        };
+    });
+
+    const response = responseJson(true, presentationData, '', 200);
     return res.status(200).json(response);
 });
 
