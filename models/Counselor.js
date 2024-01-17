@@ -33,7 +33,7 @@ const CounselorSchema = new Schema({
         type: String,
         enum: ['individual', 'agency'],
         required: true,
-        default:"agency"
+        default: "agency"
     },
     agency_name: {
         type: String,
@@ -91,6 +91,10 @@ const CounselorSchema = new Schema({
             type: String,
             required: true,
         },
+    },
+    walletBalance: {
+        type: Number,
+        default: 0,
     },
     averageRating: Number,
     numberOfReviews: Number

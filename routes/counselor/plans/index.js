@@ -27,7 +27,7 @@ router.get("/billings", async (req, res) => {
         limit: parseInt(limit || 10),
         page: parseInt(page || 1),
         sort: { _id: -1 },
-        populate: [{ path: 'paymentRef' }]
+        populate: [{ path: 'paymentRef' }, { path: 'plan' }]
     }
 
     const query = { counselor: new ObjectId(req.user._id) }

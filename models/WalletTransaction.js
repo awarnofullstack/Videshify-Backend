@@ -1,41 +1,38 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const mongoosePaginate = require("mongoose-paginate-v2")
 
-
-const WalletTransactionSchema = new Schema({
-    wallet_id: {
-        type: Schema.Types.ObjectId,
-        ref: 'Wallet',
-        required: true
-    },
-    amount: {
-        type: Number,
-        required: true
+const WalletTransactionSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
     },
     type: {
         type: String,
         enum: ['credit', 'debit'],
-        required: true
+        required: true,
     },
-    service: {
-        type: String,
-        required: false,
-        default: null
+    amount: {
+        type: Number,
+        required: true,
     },
-    reference_no: {
+    reference: {
         type: String,
-        required: false,
-        default: null
+        required: true,
     },
     note: {
         type: String,
         required: false,
-        default: ''
-    }
-},
-    {
-        timestamps: true
-    }
-);
+    },
+    schedule: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Schedule',
+        required: false,
+    },
+    // Add other relevant fields as needed
+}, { timestamps: true });
+
+WalletTransactionSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('WalletTransaction', WalletTransactionSchema);

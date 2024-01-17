@@ -16,6 +16,9 @@ const { genZoomToken } = require("../../../middleware/zoomAuthToken");
 const Payment = require("../../../models/Payment");
 const User = require("../../../models/User");
 const { assignSelf } = require("../../../utils/createMeeting");
+const adminCommissionRate = require("../../../utils/commission");
+const StudentCounselor = require("../../../models/StudentCounselor");
+const Counselor = require("../../../models/Counselor");
 
 
 const createScheduleValidationChain = [
@@ -46,7 +49,7 @@ router.get("/", async (req, res) => {
 
 router.get("/past", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -57,7 +60,7 @@ router.get("/past", async (req, res) => {
     const query = { student: req.user._id };
     query.start_time = { $lt: new Date() }
 
-    if (date  && date !== '' && date !== 'Invalid date') {
+    if (date && date !== '' && date !== 'Invalid date') {
         query.start_time = { $lte: date }
     }
 
@@ -80,7 +83,7 @@ router.get("/upcoming", async (req, res) => {
     const query = { student: req.user._id };
     query.start_time = { $gte: new Date() }
 
-    if (date  && date !== '' && date !== 'Invalid date') {
+    if (date && date !== '' && date !== 'Invalid date') {
         query.start_time = { $gte: date }
     }
 
@@ -143,13 +146,18 @@ router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req
         type: 'debit',
         note: 'Service purchased by student'
     }
+
     const paymentComplete = await Payment.create(createPayment);
 
     if (!paymentComplete) {
         throw new Error('Failed to book session transaction issue.')
     }
 
+    const commission = Number(amount) * adminCommissionRate;
+    const remainingAmount = Number(amount) - commission;
+
     const { counselor, start_time, duration, description } = req.body;
+
     const createSchedule = {
         payment_ref: paymentComplete._id,
         counselor,
@@ -174,11 +182,22 @@ router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req
     const user = await User.findOne({ _id: counselor }).lean();
 
     if (user.role === 'student counselor') {
-        await assignSelf(req, scheduleCreate._id)
+        await assignSelf(req, scheduleCreate._id);
+        await StudentCounselor.findOne({ user_id: counselor }).updateOne({ $inc: { walletBalance: remainingAmount } });
+    } else {
+        await Counselor.findOne({ user_id: counselor }).updateOne({ $inc: { walletBalance: remainingAmount } });
     }
 
-
-
+    // Create wallet transactions
+    await WalletTransaction.create([
+        {
+            user: counselor,
+            type: 'credit',
+            amount: remainingAmount,
+            reference: 'Amount from counseling session',
+            schedule: scheduleCreate._id
+        },
+    ]);
 
     const response = responseJson(true, scheduleCreate, 'Session booked successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);

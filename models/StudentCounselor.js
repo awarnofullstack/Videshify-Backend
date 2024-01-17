@@ -88,6 +88,10 @@ const StudentCounselorSchema = new Schema({
         },
 
     },
+    walletBalance: {
+        type: Number,
+        default: 0,
+    },
     averageRating: Number,
     numberOfReviews: Number
 },

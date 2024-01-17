@@ -11,4 +11,5 @@ const generate = (digits = 5) => {
 }
 
 
+
 module.exports = generate;

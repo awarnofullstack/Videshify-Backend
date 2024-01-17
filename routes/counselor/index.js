@@ -14,6 +14,7 @@ const message = require("./messages");
 const community = require("./community");
 const plans = require("./plans");
 const payment = require("./payment");
+const wallet = require("./wallet");
 
 const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../middleware/authHandler");
 
@@ -26,6 +27,7 @@ router.use('/schedule', [authenticateToken, authorizeRoles('counselor'), authori
 router.use('/service', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], service);
 router.use('/plans', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], plans);
 router.use('/payment', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], payment);
+router.use('/wallet', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], wallet);
 router.use('/ticket', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], ticket);
 router.use('/community', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], community);
 router.use('/message', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], message);
