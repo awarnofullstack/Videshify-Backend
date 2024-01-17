@@ -129,6 +129,7 @@ router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req
         const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
         return res.status(StatusCodes.OK).json(response);
     }
+    
     const id = req.user._id;
 
     const { amount, service, reference_no } = req.body;
@@ -180,7 +181,7 @@ router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req
         }
     }
 
-    const user = await User.findOne({ _id: counselor }).lean();
+    const user = await User.findOne({ _id: new ObjectId(counselor) }).lean();
 
     if (user.role === 'student counselor') {
         await assignSelf(req, scheduleCreate._id);
