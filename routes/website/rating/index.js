@@ -177,7 +177,7 @@ router.get("/:id/counselor/graph", async (req, res) => {
         return {
             rating: index + 1,
             count: existingStat ? existingStat.count : 0,
-            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+            percentage: (((existingStat ? existingStat.count : 0) / totalRatings * 100) || 0).toFixed(2)
         };
     });
 
@@ -234,7 +234,7 @@ router.get("/:id/student-counselor/graph", async (req, res) => {
         return {
             rating: index + 1,
             count: existingStat ? existingStat.count : 0,
-            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+            percentage: (((existingStat ? existingStat.count : 0) / totalRatings * 100) || 0).toFixed(2)
         };
     });
 
@@ -271,7 +271,9 @@ router.get("/:id/service/graph", async (req, res) => {
 
     // Create a new review
     const ratingStats = await ServiceRating.aggregate([
-        
+        {
+            $match : {service : new ObjectId(id)}
+        },
         {
             $group: {
                 _id: '$rating',
@@ -291,7 +293,7 @@ router.get("/:id/service/graph", async (req, res) => {
         return {
             rating: index + 1,
             count: existingStat ? existingStat.count : 0,
-            percentage: ((existingStat ? existingStat.count : 0) / totalRatings * 100).toFixed(2)
+            percentage: (((existingStat ? existingStat.count : 0) / totalRatings * 100) || 0).toFixed(2)
         };
     });
 
