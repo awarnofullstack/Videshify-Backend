@@ -10,6 +10,7 @@ const Schedule = require("../../../models/Schedule");
 const Counselor = require("../../../models/Counselor");
 const WalletTransaction = require("../../../models/WalletTransaction");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
+const CounselorMember = require("../../../models/CounselorMember");
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -34,9 +35,7 @@ router.get("/payments", async (req, res) => {
             $project: { _id: 0, sum: 1 }
         }
     ]);
-
     const balance = counselor?.walletBalance;
-
 
     const response = responseJson(true, { totalReceived: totalReceived[0]?.sum || 0, lastReceived: lastReceived?.amount || 0, remainBalance: balance || 0 }, '', 200);
     return res.status(200).json(response);
@@ -45,7 +44,7 @@ router.get("/payments", async (req, res) => {
 router.get("/counselor-student", async (req, res) => {
 
     const totalStudents = await StudentInCounselor.find({ counselor: new ObjectId(req.user._id) }).countDocuments()
-    const totalCounselors = await User.find({ role: { $in: ['student counselor', 'counselor'] } }).countDocuments();
+    const totalCounselors = await  CounselorMember({ counselor: new ObjectId(req.user._id) }).countDocuments();
     const response = responseJson(true, { totalStudents, totalCounselors }, '', 200);
     return res.status(200).json(response);
 });

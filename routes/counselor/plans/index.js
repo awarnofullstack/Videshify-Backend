@@ -34,12 +34,77 @@ router.get("/billings", async (req, res) => {
         limit: parseInt(limit || 10),
         page: parseInt(page || 1),
         sort: { _id: -1 },
-        populate: [{ path: 'paymentRef' }, { path: 'plan' }]
+        // populate: [{ path: 'paymentRef' }, { path: 'plan' }]
     }
 
     const query = { counselor: new ObjectId(req.user._id) }
 
-    const plans = await ActivePlanBilling.paginate(query, options);
+
+    const orConditions = [];
+
+    if (search) {
+        orConditions.push(
+            { "paymentRef.reference_no": { $regex: new RegExp(search, 'i') } },
+            { "plan.label": { $regex: new RegExp(search, 'i') } },
+            { "plan.type": { $regex: new RegExp(search, 'i') } },
+        );
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
+
+    const planAggregate = ActivePlanBilling.aggregate([
+        {
+            $lookup: {
+                from: 'payments',
+                localField: 'paymentRef',
+                foreignField: '_id',
+                as: 'paymentRef',
+                pipeline: [
+                    {
+                        $project: { amount: 1, type: 1, service: 1, reference_no: 1, note: 1, _id: 1 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: '$paymentRef'
+        },
+        {
+            $lookup: {
+                from: 'planbillings',
+                localField: 'plan',
+                foreignField: '_id',
+                as: 'plan'
+            }
+        },
+        {
+            $unwind: '$plan'
+        },
+        {
+            $addFields: {
+                startDate: {
+                    $toDate: "$createdAt" // Convert createdAt to BSON date
+                }
+            }
+        },
+        {
+            $addFields: {
+                expiryDate: {
+                    $dateToString: {
+                        date: { $add: ["$startDate", { $multiply: [1, 30 * 24 * 60 * 60 * 1000] }] }, // Add 30 days to startDate
+                        format: "%d/%m/%Y"
+                    }
+                }
+            }
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const plans = await ActivePlanBilling.aggregatePaginate(planAggregate, options);
     const response = responseJson(true, plans, '', 200);
     return res.status(200).json(response);
 });

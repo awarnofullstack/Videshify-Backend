@@ -31,7 +31,7 @@ router.get('/mentors', async (req, res) => {
     }
 
     if (rating) {
-        query.averageRating = { $gte: rating };
+        query.averageRating = { $gte: Number(rating) };
     }
 
     const orConditions = [];
@@ -53,7 +53,6 @@ router.get('/mentors', async (req, res) => {
         limit,
         page: parseInt(page) || 1,
         select: { bank_account_details: 0 },
-        populate: [{ path: "user_id", select: "first_name last_name" }]
     }
 
     const counselors = StudentCounselor.aggregate([
@@ -80,10 +79,10 @@ router.get('/mentors', async (req, res) => {
             $project: { user_id: 0 }
         },
         {
-            $addFields: { user_id: "$user" }
+            $addFields: { user_id: "$user", profileUrl: { $concat: [process.env.BASE_URL, '/static/', '$profile'] }  }
         },
         {
-            $project: { bank_account_details: 0 }
+            $project: { bank_account_details: 0, walletBalance: 0 }
         },
         {
             $match: query

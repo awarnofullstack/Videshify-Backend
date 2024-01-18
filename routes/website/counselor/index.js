@@ -12,6 +12,7 @@ const responseJson = require("../../../utils/responseJson");
 
 const Counselor = require("../../../models/Counselor");
 const CounselorMember = require("../../../models/CounselorMember");
+const CounselorTestimonial = require("../../../models/CounselorTestimonial");
 
 
 router.get('/browse-counselors', async (req, res) => {
@@ -141,9 +142,10 @@ router.get("/show/:id", async (req, res) => {
     const { id } = req.params;
     let counselorProfile = await Counselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
 
-    const counselorTeam = await CounselorMember.find({ counselor: new ObjectId(id) }).sort({ _id: -1 }).lean();
+    const counselorTeam = await CounselorMember.find({ counselor: new ObjectId(id) }).sort({ _id: -1 });
+    const counselorTestimonial = await CounselorTestimonial.find({ counselor: new ObjectId(id) }).select({_id: 1, youtube_link: 1, counselor: 1}).sort({ _id: -1 });
 
-    const response = responseJson(true, { counselorProfile, counselorTeam }, '', 200);
+    const response = responseJson(true, { counselorProfile,counselorTestimonial, counselorTeam }, '', 200);
     return res.status(200).json(response);
 })
 
