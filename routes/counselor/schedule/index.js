@@ -98,7 +98,7 @@ router.get("/upcoming", async (req, res) => {
 
 
     if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $eq: date }
+        query.start_time = { $gte: date }
     }
 
     const members = await Schedule.paginate(query, options);
@@ -205,7 +205,7 @@ router.get("/re-schedules", async (req, res) => {
     query.start_time = { $gte: new Date() }
 
     if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $eq: date }
+        query.start_time = { $gte: date }
     }
 
     const schedules = await Schedule.paginate(query, options);

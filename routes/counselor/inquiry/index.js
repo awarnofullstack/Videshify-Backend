@@ -35,8 +35,8 @@ router.get("/", async (req, res) => {
 
     const query = { counselor: new ObjectId(req.user._id) };
 
-    if (date && date !== '' && date !== 'Invalid date') {
-        query.createdAt = { $eq: date }
+    if (date && data !== 'null' && date !== '' && date !== 'Invalid date') {
+        query.createdAt = { $gte: date }
     }
 
     const inquiries = await Inquiry.paginate(query, options);
