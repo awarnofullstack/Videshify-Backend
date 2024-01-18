@@ -37,7 +37,7 @@ CounselorMemberSchema.plugin(mongoosePaginate);
 
 CounselorMemberSchema.set('toJSON', { virtuals: true });
 
-CounselorMemberSchema.virtual('profile_url').get(function () {
+CounselorMemberSchema.virtual('profileUrl').get(function () {
     if (this.profile) {
         return process.env.BASE_URL + '/static/' + this.profile;
     }
