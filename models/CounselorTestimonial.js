@@ -10,11 +10,11 @@ const CounselorTestimonialSchema = new Schema({
     },
     name: {
         type: String,
-        required: true
+        required: false
     },
     university: {
         type: String,
-        required: true
+        required: false
     },
     youtube_link: {
         type: String,

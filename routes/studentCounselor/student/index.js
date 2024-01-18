@@ -1,6 +1,7 @@
 const express = require("express");
 const { StatusCodes } = require("http-status-codes");
 const mongoose = require("mongoose");
+const moment = require("moment");
 
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
@@ -18,7 +19,8 @@ const StudentResearchPrep = require("../../../models/StudentResearchPrepCareer")
 
 
 const StudentCurricularActivity = require("../../../models/StudentExtraCurricularActivity")
-const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity")
+const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperienceActivity");
+const Schedule = require("../../../models/Schedule");
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -26,25 +28,54 @@ const router = express.Router();
 
 router.get('/all', async (req, res) => {
 
-    const { limit, page } = req.query;
-
-    const unSelectFields = {
-        resetToken: 0,
-        updatedAt: 0,
-        password: 0,
-        resetTokenExpiry: 0,
-        __v: 0
-    }
+    const { limit, page, search } = req.query;
 
     const options = {
         limit,
         page,
-        populate: [{ path: 'student', select: unSelectFields }],
     }
+
+    const orConditions = [];
 
     const query = { counselor: new ObjectId(req.user._id) };
 
-    const data = await StudentInCounselor.paginate(query, { ...options });
+
+    if (search) {
+        orConditions.push(
+            { "student.name": { $regex: search, $options: 'i' } }
+        )
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
+
+    const students = StudentInCounselor.aggregate([
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'student',
+                foreignField: '_id',
+                as: 'student',
+                pipeline: [
+                    {
+                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] } }
+                    },
+                    {
+                        $project: { first_name: 1, last_name: 1, role: 1, createdAt: 1, name: 1 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$student"
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const data = await StudentInCounselor.aggregatePaginate(students, options);
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
@@ -54,10 +85,21 @@ router.get('/all', async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
+router.get("/tile", async (req, res) => {
+    const recentWeek = moment().subtract(7, 'days')
+
+    const totalStudents = await StudentInCounselor.find({ counselor: new ObjectId(req.user._id) }).countDocuments();
+    const RecentAdded = await StudentInCounselor.find({ createdAt: { $gte: recentWeek }, counselor: new ObjectId(req.user._id) }).countDocuments();
+
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() }, counselor: new ObjectId(req.user._id) }).countDocuments();
+    const response = responseJson(true, { totalStudents, RecentAdded, totalUpcomings }, '', 200);
+    return res.status(200).json(response);
+});
+
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
 
-    const isStudentProfile = await Student.findOne({ user_id: id }).populate('user_id');
+    const isStudentProfile = await Student.findOne({ user_id: id }).populate({ path: 'user_id', select: { password: 0, email: 0, phone: 0, resetToken: 0, resetTokenExpiry: 0, approved: 0 } });
 
     if (!isStudentProfile) {
         const response = responseJson(false, {}, 'No student profile found.', StatusCodes.NOT_FOUND);

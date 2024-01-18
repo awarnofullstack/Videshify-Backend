@@ -16,10 +16,21 @@ const CommunitySavedPost = require("../../../../models/CommunitySavedPost");
 const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
-    const { limit, page } = req.query;
+    const { limit, page, category, hashtag } = req.query;
     const options = {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
+    }
+
+
+    const query = {};
+
+    if (category && category.length > 0) {
+        query.category = { $regex: category, $options: 'i' }
+    }
+
+    if (hashtag && hashtag.length > 0) {
+        query.text = { $regex: hashtag, $options: 'i' }
     }
 
     const posts =
@@ -61,18 +72,49 @@ router.get("/", async (req, res) => {
                 },
             },
             {
+                $lookup: {
+                    from: 'communityfollows',
+                    let: { authorId: { $arrayElemAt: ['$authorInfo._id', 0] }, authorizedUserId: new ObjectId(req.user._id) },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$following', '$$authorId'] },
+                                        { $eq: ['$follower', '$$authorizedUserId'] },
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                hasFollowed: { $literal: true },
+                            },
+                        },
+                    ],
+                    as: 'followInfo',
+                },
+            },
+            {
                 $addFields: {
                     likeCount: { $size: '$likes' },
                     commentCount: { $size: '$comments' },
+                    hasFollowed: { $ifNull: [{ $arrayElemAt: ['$followInfo.hasFollowed', 0] }, false] },
                 },
+            },
+            {
+                $match: query
             },
             {
                 $project: {
                     text: 1,
                     content: 1,
+                    category: 1,
                     docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
                     postBy: { $arrayElemAt: ['$authorInfo', 0] },
                     likeCount: 1,
+                    createdAt: 1,
+                    hasFollowed: 1,
                     commentCount: 1,
                     role: { $arrayElemAt: ['$authorInfo.role', 0] },
                 },
@@ -201,12 +243,15 @@ router.get("/", async (req, res) => {
                             {
                                 postId: '$_id',
                                 text: '$text',
+                                category: "$category",
                                 content: '$content',
+                                createdAt: '$createdAt',
                                 docUrl: '$docUrl',
                                 author: '$author',
                                 postBy: '$postBy',
                                 likeCount: '$likeCount',
                                 commentCount: '$commentCount',
+                                followed: '$hasFollowed'
                             },
                         ],
                     },

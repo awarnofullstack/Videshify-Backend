@@ -6,6 +6,7 @@ const router = express.Router();
 const responseJson = require("../../../../utils/responseJson");
 
 const CommunitySavedPost = require("../../../../models/CommunitySavedPost");
+const CommunityPost = require("../../../../models/CommunityPost");
 
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -15,24 +16,20 @@ router.get("/", async (req, res) => {
     const options = {
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 10,
+        sort: { createdAt: -1 }
     }
 
-    const savedPost = CommunitySavedPost.aggregate([
-        {
-            $match: { user: new ObjectId(req.user._id) }
-        },
-        {
-            $lookup: {
-                from: 'communityposts', // Use the correct collection name
-                localField: 'post',
-                foreignField: '_id',
-                as: 'savedPosts',
-            },
-        },
+    const communitySavedPost = await CommunitySavedPost.find({ user: new ObjectId(req.user._id) }).select(['post']).lean();
+
+    let savedPostIds = communitySavedPost.map((item) => item.post);
+
+    const query = { _id: { $in: savedPostIds } }
+
+    const savedPost = CommunityPost.aggregate([
         {
             $lookup: {
                 from: 'communitypostlikes',
-                localField: 'post',
+                localField: '_id',
                 foreignField: 'post',
                 as: 'likes',
             },
@@ -40,17 +37,15 @@ router.get("/", async (req, res) => {
         {
             $lookup: {
                 from: 'communitypostcomments',
-                localField: 'post',
+                localField: '_id',
                 foreignField: 'post',
                 as: 'comments',
             },
         },
-
-        // users lookup 
         {
             $lookup: {
                 from: 'users',
-                let: { authorId: '$savedPosts.author' },
+                let: { authorId: '$author' },
                 pipeline: [
                     {
                         $match: {
@@ -67,11 +62,58 @@ router.get("/", async (req, res) => {
                 as: 'authorInfo',
             },
         },
-        // lookups according to roles
+        {
+            $lookup: {
+                from: 'communityfollows',
+                let: { authorId: { $arrayElemAt: ['$authorInfo._id', 0] }, authorizedUserId: new ObjectId(req.user._id) },
+                pipeline: [
+                    {
+                        $match: {
+                            $expr: {
+                                $and: [
+                                    { $eq: ['$following', '$$authorId'] },
+                                    { $eq: ['$follower', '$$authorizedUserId'] },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $project: {
+                            hasFollowed: { $literal: true },
+                        },
+                    },
+                ],
+                as: 'followInfo',
+            },
+        },
+        {
+            $addFields: {
+                likeCount: { $size: '$likes' },
+                commentCount: { $size: '$comments' },
+                hasFollowed: { $ifNull: [{ $arrayElemAt: ['$followInfo.hasFollowed', 0] }, false] },
+            },
+        },
+        {
+            $match: query
+        },
+        {
+            $project: {
+                text: 1,
+                content: 1,
+                category: 1,
+                docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
+                postBy: { $arrayElemAt: ['$authorInfo', 0] },
+                likeCount: 1,
+                createdAt: 1,
+                hasFollowed: 1,
+                commentCount: 1,
+                role: { $arrayElemAt: ['$authorInfo.role', 0] },
+            },
+        },
         {
             $lookup: {
                 from: 'students', // Default collection name
-                let: { role: '$authorInfo.role', postByUserId: '$authorInfo._id' },
+                let: { role: '$role', postByUserId: '$postBy._id' },
                 pipeline: [
                     {
                         $match: {
@@ -101,7 +143,7 @@ router.get("/", async (req, res) => {
         {
             $lookup: {
                 from: 'counselors', // Default collection name
-                let: { role: '$authorInfo.role', postByUserId: '$authorInfo._id' },
+                let: { role: '$role', postByUserId: '$postBy._id' },
                 pipeline: [
                     {
                         $match: {
@@ -131,7 +173,7 @@ router.get("/", async (req, res) => {
         {
             $lookup: {
                 from: 'studentcounselors', // Default collection name
-                let: { role: '$authorInfo.role', postByUserId: '$authorInfo._id' },
+                let: { role: '$role', postByUserId: '$postBy._id' },
                 pipeline: [
                     {
                         $match: {
@@ -150,7 +192,7 @@ router.get("/", async (req, res) => {
                     },
                     {
                         $project: {
-                            author_name: { $concat: ['$authorInfo.first_name', ' ', '$authorInfo.last_name'] },
+                            author_name: '$name',
                             profile: 1
                         }
                     }
@@ -158,7 +200,6 @@ router.get("/", async (req, res) => {
                 as: 'studentCounselorData',
             },
         },
-        // merge fields
         {
             $addFields: {
                 nonEmptyFields: {
@@ -191,22 +232,24 @@ router.get("/", async (req, res) => {
                     $mergeObjects: [
                         { $arrayElemAt: ['$nonEmptyFields', 0] },
                         {
-                            postId: { $arrayElemAt: ['$savedPosts._id', 0] },
-                            text: { $arrayElemAt: ['$savedPosts.text', 0] },
-                            content: { $arrayElemAt: ['$savedPosts.content', 0] },
-                            docUrl: { $arrayElemAt: ['$savedPosts.docUrl', 0] },
-                            author: { $arrayElemAt: ['$savedPosts.author', 0] },
-                            postBy: { $arrayElemAt: ['$savedPosts.postBy', 0] },
-                            likeCount: { $size: '$likes' },
-                            commentCount: { $size: '$comments' },
+                            postId: '$_id',
+                            text: '$text',
+                            category: "$category",
+                            content: '$content',
+                            createdAt: '$createdAt',
+                            docUrl: '$docUrl',
+                            author: '$author',
+                            postBy: '$postBy',
+                            likeCount: '$likeCount',
+                            commentCount: '$commentCount',
+                            followed: '$hasFollowed'
                         },
                     ],
                 },
             },
         },
     ]);
-
-    const communityPost = await CommunitySavedPost.aggregatePaginate(savedPost, options)
+    const communityPost = await CommunityPost.aggregatePaginate(savedPost, options)
 
     const response = responseJson(true, communityPost, '', 200);
     return res.status(200).json(response);

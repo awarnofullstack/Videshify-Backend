@@ -124,6 +124,7 @@ router.put("/:id", postCreateValidationChain, validate, async (req, res) => {
     const updatedPost = await CommunityPost.findByIdAndUpdate(id, { $set: { ...req.body } }, { new: true });
     const response = responseJson(true, updatedPost, 'Post updated successfuly.', StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
+
 })
 
 router.delete("/:id", async (req, res) => {
@@ -141,6 +142,7 @@ router.delete("/:id", async (req, res) => {
     await CommunityPost.findByIdAndRemove(new ObjectId(id));
     const response = responseJson(true, {}, 'Post removed.', StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
+
 })
 
 module.exports = router;

@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const moment = require("moment")
+
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
 const validate = require("../../../utils/validateHandler");
@@ -19,7 +21,7 @@ const createTicketValidationChain = [
 ];
 
 router.get("/", async (req, res) => {
-    const { limit, page, search, status } = req.query;
+    const { limit, page, status, search } = req.query;
 
     const query = { createdBy: req.user._id };
 
@@ -44,6 +46,22 @@ router.get("/", async (req, res) => {
     return res.status(200).json(response);
 });
 
+
+router.get("/tile", async (req, res) => {
+
+    let lastTicketRaised = await Ticket.findOne({ createdBy: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean();
+    const pendingTickets = await Ticket.find({ createdBy: new ObjectId(req.user._id), status: 'open' }).countDocuments();
+    const resolvedTickets = await Ticket.find({ createdBy: new ObjectId(req.user._id), status: 'closed' }).countDocuments();
+
+    if (lastTicketRaised) {
+        lastTicketRaised = moment(lastTicketRaised.createdAt).format('DD MMM YYYY')
+    }
+
+    const response = responseJson(true, { lastTicketRaised, pendingTickets, resolvedTickets }, '', 200);
+    return res.status(200).json(response);
+});
+
+
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const ticket = await Ticket.findOne({ _id: new ObjectId(id), createdBy: req.user._id }).populate('createdBy', 'first_name last_name');
@@ -65,6 +83,7 @@ router.post("/", createTicketValidationChain, validate, async (req, res) => {
     if (req.files?.attachment) {
         respond.attachment = makeMoved(req.files.attachment);
     }
+
     const ticketsCount = await Ticket.find().countDocuments();
 
     const ticketCreate = new Ticket({ createdBy: id, ...req.body, ticketId: ticketsCount + 1 });
