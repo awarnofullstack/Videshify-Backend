@@ -13,8 +13,48 @@ const Payment = require("../../../models/Payment");
 const ObjectId = mongoose.Types.ObjectId;
 
 router.get("/", async (req, res) => {
+    // const plans = await PlanBilling.find();
 
-    const plans = await PlanBilling.find();
+    const aggregatePipeline = [
+        {
+            $lookup: {
+                from: 'activeplanbillings',
+                localField: '_id',
+                foreignField: 'plan',
+                as: 'activePlan'
+            }
+        },
+        {
+            $addFields: {
+                isActive: {
+                    $cond: {
+                        if: {
+                            $gt: [
+                                { $size: "$activePlan" },
+                                0
+                            ]
+                        },
+                        then: {
+                            $anyElementTrue: {
+                                $map: {
+                                    input: "$activePlan",
+                                    as: "ap",
+                                    in: { $eq: ["$$ap.isExpired", false] }
+                                }
+                            }
+                        },
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: { activePlan : 0}
+        }
+    ];
+
+    const plans = await PlanBilling.aggregate(aggregatePipeline)
+
     const response = responseJson(true, plans, '', 200);
     return res.status(200).json(response);
 });

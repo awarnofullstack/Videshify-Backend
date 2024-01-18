@@ -38,8 +38,14 @@ router.get("/", async (req, res) => {
 
     const query = { counselor: new ObjectId(req.user._id) }
 
-    if (date && date !== 'null'  && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $eq: date }
+    if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
+        const momentDate = moment(date);
+        const startOfDay = momentDate.add(1, 'day');
+
+        query.start_time = {
+            $gte: date,
+            $lte: startOfDay,
+        };
     }
 
     const members = await Schedule.paginate(query, options);
@@ -59,8 +65,6 @@ router.get("/tile", async (req, res) => {
     return res.status(200).json(response);
 });
 
-
-
 router.get("/past", async (req, res) => {
 
     const { limit, page, date } = req.query;
@@ -75,7 +79,13 @@ router.get("/past", async (req, res) => {
     query.start_time = { $lt: new Date() }
 
     if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $eq: date }
+        const momentDate = moment(date);
+        const startOfDay = momentDate.add(1, 'day');
+
+        query.start_time = {
+            $gte: date,
+            $lte: startOfDay,
+        };
     }
 
     const members = await Schedule.paginate(query, options);
@@ -98,7 +108,13 @@ router.get("/upcoming", async (req, res) => {
 
 
     if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $gte: date }
+        const momentDate = moment(date);
+        const startOfDay = momentDate.add(1, 'day');
+
+        query.start_time = {
+            $gte: date,
+            $lt: startOfDay,
+        };
     }
 
     const members = await Schedule.paginate(query, options);
@@ -203,9 +219,16 @@ router.get("/re-schedules", async (req, res) => {
 
     const query = { counselor: req.user._id, is_reschedule: true };
     query.start_time = { $gte: new Date() }
+    query.reschedule_at = { $gte: new Date() }
 
     if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
-        query.start_time = { $gte: date }
+        const momentDate = moment(date);
+        const startOfDay = momentDate.add(1, 'day');
+
+        query.start_time = {
+            $gte: date,
+            $lte: startOfDay,
+        };
     }
 
     const schedules = await Schedule.paginate(query, options);
