@@ -53,9 +53,9 @@ router.get("/counselor-student", async (req, res) => {
 
 router.get("/bookings", async (req, res) => {
 
-    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
-    const totalReschedules = await Schedule.find({ is_reschedule: true }).countDocuments();
-    const totalPast = await Schedule.find({ start_time: { $lt: new Date() } }).countDocuments();
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() }, counselor: new ObjectId(req.user._id) }).countDocuments();
+    const totalReschedules = await Schedule.find({ is_reschedule: true, counselor: new ObjectId(req.user._id) }).countDocuments();
+    const totalPast = await Schedule.find({ start_time: { $lt: new Date() }, counselor: new ObjectId(req.user._id) }).countDocuments();
 
     const response = responseJson(true, { totalUpcomings, totalPast, totalReschedules }, '', 200);
     return res.status(200).json(response);
