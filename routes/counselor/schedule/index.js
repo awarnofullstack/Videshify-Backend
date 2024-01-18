@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 
     const query = { counselor: new ObjectId(req.user._id) }
 
-    if (date && data !== 'null'  && date !== '' && date !== 'Invalid date') {
+    if (date && date !== 'null'  && date !== '' && date !== 'Invalid date') {
         query.start_time = { $eq: date }
     }
 
@@ -74,7 +74,7 @@ router.get("/past", async (req, res) => {
     const query = { counselor: new ObjectId(req.user._id) };
     query.start_time = { $lt: new Date() }
 
-    if (date && data !== 'null' && date !== '' && date !== 'Invalid date') {
+    if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
         query.start_time = { $eq: date }
     }
 
@@ -97,7 +97,7 @@ router.get("/upcoming", async (req, res) => {
     query.start_time = { $gte: new Date() }
 
 
-    if (date && data !== 'null' && date !== '' && date !== 'Invalid date') {
+    if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
         query.start_time = { $eq: date }
     }
 
@@ -204,7 +204,7 @@ router.get("/re-schedules", async (req, res) => {
     const query = { counselor: req.user._id, is_reschedule: true };
     query.start_time = { $gte: new Date() }
 
-    if (date && date !== '' && date !== 'Invalid date') {
+    if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
         query.start_time = { $eq: date }
     }
 
