@@ -266,6 +266,9 @@ router.get('/browse-services', async (req, res) => {
             $match: query
         },
         {
+            $addFields: {thumbnail : {$concat: [`${process.env.BASE_URL}`,`/static/`, `$cover_photo`]}}
+        },
+        {
             $project: { counselors: 0 }
         },
     ])
