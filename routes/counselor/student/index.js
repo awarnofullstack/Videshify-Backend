@@ -62,10 +62,10 @@ router.get('/all', async (req, res) => {
 router.get("/tile", async (req, res) => {
     const recentWeek = moment().subtract(7, 'days')
 
-    const totalStudents = await User.find({ role: 'student' }).countDocuments();
-    const RecentAdded = await User.find({ createdAt: { $gte: recentWeek } }).countDocuments();
+    const totalStudents = await StudentInCounselor.find({ counselor: new ObjectId(req.user._id) }).countDocuments();
+    const RecentAdded = await StudentInCounselor.find({ createdAt: { $gte: recentWeek }, counselor: new ObjectId(req.user._id) }).countDocuments();
 
-    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() }, counselor: new ObjectId(req.user._id) }).countDocuments();
     const response = responseJson(true, { totalStudents, RecentAdded, totalUpcomings }, '', 200);
     return res.status(200).json(response);
 });

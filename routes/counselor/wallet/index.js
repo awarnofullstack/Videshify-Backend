@@ -24,6 +24,10 @@ router.get("/transaction", async (req, res) => {
 
     const query = { user: new ObjectId(req.user._id) }
 
+    if (search) {
+        query.reference = { $regex: `${search}`, $options: 'i' }
+    }
+
     const wallets = await WalletTransaction.paginate(query, options);
     const response = responseJson(true, wallets, '', 200);
     return res.status(200).json(response);

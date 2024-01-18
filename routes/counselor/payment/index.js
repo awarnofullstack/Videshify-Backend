@@ -23,6 +23,11 @@ router.get("/", async (req, res) => {
 
     const query = { user: new ObjectId(req.user._id) }
 
+
+    if (search) {
+        query.reference_no = { $regex: `${search}`, $options: 'i' }
+    }
+
     const payments = await Payment.paginate(query, options);
     const response = responseJson(true, payments, '', 200);
     return res.status(200).json(response);
@@ -43,7 +48,7 @@ router.get("/tile", async (req, res) => {
         {
             $project: { _id: 0, sum: 1 }
         }
-    ]); 
+    ]);
 
     const recentPayment = await Payment.findOne({ user: new ObjectId(req.user._id) }).sort({ _id: -1 }).lean()
 

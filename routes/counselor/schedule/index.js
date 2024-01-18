@@ -6,6 +6,7 @@ const { body, validationResult } = require("express-validator");
 
 const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
+const validate = require("../../../utils/validateHandler");
 
 const CounselorMember = require("../../../models/CounselorMember");
 const Schedule = require("../../../models/Schedule");
@@ -15,11 +16,8 @@ const { createMeeting } = require("../../../utils/createMeeting");
 const { genZoomToken } = require("../../../middleware/zoomAuthToken");
 const { default: mongoose } = require("mongoose");
 
-const createScheduleValidationChain = [
-    body('name').notEmpty().trim().toLowerCase().withMessage('name is required field.'),
-    body('email').isEmail().toLowerCase().withMessage('please provide valid email address').notEmpty().trim().withMessage('email is required field.'),
-    body('experience').notEmpty().trim().withMessage('experience is required field.'),
-    body('services').notEmpty().withMessage('services is required field.'),
+const reScheduleValidationChain = [
+    body('reschedule_at').notEmpty().trim().withMessage('Re-schedule date & time is required field.'),
 ];
 
 const assignMemberValidationChain = [
@@ -53,10 +51,10 @@ router.get("/", async (req, res) => {
 router.get("/tile", async (req, res) => {
     const recentWeek = moment().subtract(7, 'days')
 
-    const totalBookings = await Schedule.find().countDocuments();
-    const RecentAdded = await Schedule.find({ createdAt: { $gte: recentWeek } }).countDocuments();
+    const totalBookings = await Schedule.find({ counselor: new ObjectId(req.user._id) }).countDocuments();
+    const RecentAdded = await Schedule.find({ createdAt: { $gte: recentWeek }, counselor: new ObjectId(req.user._id) }).countDocuments();
 
-    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() }, counselor: new ObjectId(req.user._id) }).countDocuments();
     const response = responseJson(true, { totalBookings, RecentAdded, totalUpcomings }, '', 200);
     return res.status(200).json(response);
 });
@@ -146,7 +144,6 @@ router.delete("/:id", async (req, res) => {
 });
 
 
-
 // assign member to schedule 
 router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req, res) => {
 
@@ -196,7 +193,7 @@ router.put("/:id/assign", assignMemberValidationChain, genZoomToken, async (req,
 
 router.get("/re-schedules", async (req, res) => {
 
-    const { limit, page } = req.query;
+    const { limit, page, date } = req.query;
     const options = {
         limit,
         page,
@@ -207,12 +204,16 @@ router.get("/re-schedules", async (req, res) => {
     const query = { counselor: req.user._id, is_reschedule: true };
     query.start_time = { $gte: new Date() }
 
+    if (date && date !== '' && date !== 'Invalid date') {
+        query.start_time = { $gte: date }
+    }
+
     const schedules = await Schedule.paginate(query, options);
     const response = responseJson(true, schedules, '', 200);
     return res.status(200).json(response);
 });
 
-router.put("/:id/re-schedule", async (req, res) => {
+router.put("/:id/re-schedule", [reScheduleValidationChain, validate], async (req, res) => {
     const { id } = req.params;
 
     const schedule = await Schedule.findOne({ _id: id });

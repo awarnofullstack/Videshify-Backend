@@ -15,7 +15,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 
 router.get("/", async (req, res) => {
-    const { limit, page } = req.query;
+    const { limit, page, search, date } = req.query;
 
     const unSelectFields = {
         resetToken: 0,
@@ -33,7 +33,13 @@ router.get("/", async (req, res) => {
         populate: [{ path: 'student', select: unSelectFields }]
     }
 
-    const inquiries = await Inquiry.paginate({ counselor: req.user._id }, options);
+    const query = { counselor: new ObjectId(req.user._id) };
+
+    if (date && date !== '' && date !== 'Invalid date') {
+        query.createdAt = { $eq: date }
+    }
+
+    const inquiries = await Inquiry.paginate(query, options);
     const response = responseJson(true, inquiries, '', 200);
     return res.status(200).json(response);
 });
