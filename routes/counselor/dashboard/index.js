@@ -44,7 +44,7 @@ router.get("/payments", async (req, res) => {
 router.get("/counselor-student", async (req, res) => {
 
     const totalStudents = await StudentInCounselor.find({ counselor: new ObjectId(req.user._id) }).countDocuments()
-    const totalCounselors = await  CounselorMember({ counselor: new ObjectId(req.user._id) }).countDocuments();
+    const totalCounselors = await CounselorMember.find({ counselor: new ObjectId(req.user._id) }).countDocuments();
     const response = responseJson(true, { totalStudents, totalCounselors }, '', 200);
     return res.status(200).json(response);
 });
