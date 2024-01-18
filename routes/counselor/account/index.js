@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
 
     const data = await Counselor.findOne({ user_id: req.user.id })
         .populate({ path: 'user_id', select: UserUnselectFieds })
-        .select({ createdAt: 0, updatedAt: 0, __v: 0 }).lean();
+        .select({ createdAt: 0, updatedAt: 0, __v: 0 });
 
     if (!data) {
         const response = responseJson(false, data, 'Your profile is not completed.', StatusCodes.OK, []);
