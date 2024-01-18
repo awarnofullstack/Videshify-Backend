@@ -30,25 +30,54 @@ const router = express.Router();
 
 router.get('/all', async (req, res) => {
 
-    const { limit, page } = req.query;
-
-    const unSelectFields = {
-        resetToken: 0,
-        updatedAt: 0,
-        password: 0,
-        resetTokenExpiry: 0,
-        __v: 0
-    }
+    const { limit, page, search } = req.query;
 
     const options = {
         limit,
         page,
-        populate: [{ path: 'student', select: unSelectFields }],
     }
+
+    const orConditions = [];
 
     const query = { counselor: new ObjectId(req.user._id) };
 
-    const data = await StudentInCounselor.paginate(query, { ...options });
+
+    if (search) {
+        orConditions.push(
+            { "student.name": { $regex: search, $options: 'i' } }
+        )
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
+
+    const students = StudentInCounselor.aggregate([
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'student',
+                foreignField: '_id',
+                as: 'student',
+                pipeline: [
+                    {
+                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] } }
+                    },
+                    {
+                        $project: { first_name: 1, last_name: 1, role: 1, createdAt: 1, name: 1 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$student"
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const data = await StudentInCounselor.aggregatePaginate(students, options);
 
     if (!data) {
         const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
