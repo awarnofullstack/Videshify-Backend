@@ -1,12 +1,15 @@
 const express = require("express");
-
+const mongoose = require("mongoose");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
 
 const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
+const validate = require("../../../utils/validateHandler");
 
 const CounselorMember = require("../../../models/CounselorMember");
+const ActivePlanBilling = require("../../../models/ActivePlanBilling");
+const PlanBilling = require("../../../models/PlanBilling");
 const { makeMoved } = require("../../../utils/fileUpload");
 
 
@@ -16,6 +19,8 @@ const createCounselorMemberValidationChain = [
     body('experience').notEmpty().trim().withMessage('experience is required field.'),
     body('services').notEmpty().withMessage('services is required field.'),
 ];
+
+const ObjectId = mongoose.Types.ObjectId;
 
 
 router.get("/", async (req, res) => {
@@ -39,15 +44,24 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json(response);
 });
 
-router.post("/", createCounselorMemberValidationChain, async (req, res) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
-        return res.status(StatusCodes.OK).json(response);
-    }
+router.post("/", [createCounselorMemberValidationChain, validate], async (req, res) => {
 
     const id = req.user._id;
+
+    const activePlanBilling = await ActivePlanBilling.findOne({ counselor: new ObjectId(req.user._id), isExpired: false }).lean();
+
+    if (!activePlanBilling) {
+        throw new Error('Team members cannot be added until a plan is purchased for your account.')
+    }
+
+    const activePlan = await PlanBilling.findOne({ _id: activePlanBilling.plan }).lean();
+    const totalMembersIn = await CounselorMember.find({ counselor: new ObjectId(req.user._id) }).countDocuments()
+
+
+    if (totalMembersIn >= activePlan.uptomembers) {
+        throw new Error('Team member limit reached. Upgrade your plan for additional capacity.')
+    }
+
 
     if (req.files?.profile) {
         req.body.profile = makeMoved(req.files.profile);

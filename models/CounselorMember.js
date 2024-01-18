@@ -14,7 +14,8 @@ const CounselorMemberSchema = new Schema({
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     profile: {
         type: String,
