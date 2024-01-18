@@ -9,6 +9,7 @@ const User = require("../../../models/User");
 const Schedule = require("../../../models/Schedule");
 const Counselor = require("../../../models/Counselor");
 const WalletTransaction = require("../../../models/WalletTransaction");
+const StudentInCounselor = require("../../../models/StudentInCounselor");
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -43,7 +44,7 @@ router.get("/payments", async (req, res) => {
 
 router.get("/counselor-student", async (req, res) => {
 
-    const totalStudents = await User.find({ role: 'student' }).countDocuments();
+    const totalStudents = await StudentInCounselor.find({ counselor: new ObjectId(req.user._id) })
     const totalCounselors = await User.find({ role: { $in: ['student counselor', 'counselor'] } }).countDocuments();
     const response = responseJson(true, { totalStudents, totalCounselors }, '', 200);
     return res.status(200).json(response);
