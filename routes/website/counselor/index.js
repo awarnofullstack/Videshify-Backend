@@ -4,6 +4,7 @@ const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
+const {fetchToken} = require("../../../middleware/authHandler")
 
 const ObjectId = mongoose.Types.ObjectId;
 const router = express.Router();
@@ -13,6 +14,7 @@ const responseJson = require("../../../utils/responseJson");
 const Counselor = require("../../../models/Counselor");
 const CounselorMember = require("../../../models/CounselorMember");
 const CounselorTestimonial = require("../../../models/CounselorTestimonial");
+const Report = require("../../../models/Report");
 
 
 router.get('/browse-counselors', async (req, res) => {
@@ -23,9 +25,6 @@ router.get('/browse-counselors', async (req, res) => {
 
     const query = {};
 
-    // if (type) {
-    //     query.organization_type = type.toLowerCase();
-    // }
     if (origin_country) {
         query.origin_country = { $regex: `${origin_country}`, $options: 'i' };
     }
@@ -51,10 +50,6 @@ router.get('/browse-counselors', async (req, res) => {
     if (orConditions.length > 0) {
         query.$or = orConditions;
     }
-
-    // if (pricePerHour) {
-    //     query['bank_account_details.price_per_hour'] = { $lte: parseFloat(pricePerHour) };
-    // }
 
     const options = {
         limit,
@@ -133,21 +128,26 @@ router.get("/services-provided", async (req, res) => {
     return res.status(200).json(response);
 });
 
-router.get("/service-detail/:id", async (req, res) => {
-    const response = responseJson(false, {}, 'Module is Under progress.', 404);
-    return res.status(200).json(response);
-});
 
-router.get("/show/:id", async (req, res) => {
+router.get("/show/:id",fetchToken, async (req, res) => {
     const { id } = req.params;
     let counselorProfile = await Counselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
 
     const counselorTeam = await CounselorMember.find({ counselor: new ObjectId(id) }).sort({ _id: -1 });
-    const counselorTestimonial = await CounselorTestimonial.find({ counselor: new ObjectId(id) }).select({_id: 1, youtube_link: 1, counselor: 1}).sort({ _id: -1 });
+    const counselorTestimonial = await CounselorTestimonial.find({ counselor: new ObjectId(id) }).select({ _id: 1, youtube_link: 1, counselor: 1 }).sort({ _id: -1 });
 
-    const response = responseJson(true, { counselorProfile,counselorTestimonial, counselorTeam }, '', 200);
+    let isReported = false;
+
+    if (req.user) {
+        const reportDoc = await Report.findOne({ counselor: id, reportBy: new ObjectId(req.user._id) });
+        if (reportDoc) {
+            isReported = true;
+        }
+    }
+
+    const response = responseJson(true, { counselorProfile, counselorTestimonial, counselorTeam, isReported }, '', 200);
     return res.status(200).json(response);
-})
+});
 
 
 module.exports = router;

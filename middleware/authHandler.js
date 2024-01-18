@@ -24,6 +24,20 @@ function authenticateToken(req, res, next) {
     });
 }
 
+function fetchToken(req, res, next) {
+    let token = req.header('Authorization');
+
+    if (token) {
+        token = token.replace("Bearer ", "");
+        jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+            if (!err) {
+                req.user = user.user;
+            }
+            next();
+        });
+    }
+}
+
 function authorizeRoles(roles) {
     return (req, res, next) => {
         const userRole = req.user.role;
@@ -43,10 +57,10 @@ function authorizeApproved(req, res, next) {
     if (approved) {
         next();
     } else {
-        const response = responseJson(false,null,'Account is in pending status.',StatusCodes.UNAUTHORIZED);
+        const response = responseJson(false, null, 'Account is in pending status.', StatusCodes.UNAUTHORIZED);
         return res.status(StatusCodes.OK).json(response);
     }
 }
 
 
-module.exports = { authenticateToken, authorizeRoles, authorizeApproved };
+module.exports = { authenticateToken, authorizeRoles, authorizeApproved,fetchToken };

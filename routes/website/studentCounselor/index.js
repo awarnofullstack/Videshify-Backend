@@ -3,6 +3,7 @@ const path = require("path");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
+const { fetchToken } = require("../../../middleware/authHandler")
 
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -12,6 +13,7 @@ const responseJson = require("../../../utils/responseJson");
 
 const StudentCounselor = require("../../../models/StudentCounselor");
 const Service = require("../../../models/Service");
+const Report = require("../../../models/Report");
 
 router.get('/mentors', async (req, res) => {
 
@@ -79,7 +81,7 @@ router.get('/mentors', async (req, res) => {
             $project: { user_id: 0 }
         },
         {
-            $addFields: { user_id: "$user", profileUrl: { $concat: [process.env.BASE_URL, '/static/', '$profile'] }  }
+            $addFields: { user_id: "$user", profileUrl: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
         },
         {
             $project: { bank_account_details: 0, walletBalance: 0 }
@@ -94,13 +96,22 @@ router.get('/mentors', async (req, res) => {
     return res.status(200).json(response);
 });
 
-router.get("/:id/show", async (req, res) => {
+router.get("/:id/show", fetchToken, async (req, res) => {
     const { id } = req.params;
     let counselorProfile = await StudentCounselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
 
     const counselorServices = await Service.paginate({ counselor: new ObjectId(id) }, { limit: 10, page: 1, sort: { _id: -1 } });
 
-    const response = responseJson(true, { counselorProfile, counselorServices }, '', 200);
+    let isReported = false;
+
+    if (req.user) {
+        const reportDoc = await Report.findOne({ counselor: id, reportBy: new ObjectId(req.user._id) });
+        if (reportDoc) {
+            isReported = true;
+        }
+    }
+
+    const response = responseJson(true, { counselorProfile, counselorServices, isReported }, '', 200);
     return res.status(200).json(response);
 })
 
@@ -266,7 +277,7 @@ router.get('/browse-services', async (req, res) => {
 
 });
 
-router.get("/:id/service/show", async (req, res) => {
+router.get("/:id/service/show", fetchToken, async (req, res) => {
 
     const { id } = req.params;
     const serviceDetail = await Service.findOne({ _id: id }).lean();
@@ -277,7 +288,17 @@ router.get("/:id/service/show", async (req, res) => {
 
     const counselor = await StudentCounselor.findOne({ user_id: serviceDetail.counselor }).select({ bank_account_details: 0 }).populate('user_id');
 
-    const response = responseJson(true, { ...serviceDetail, counselor }, '', 200);
+    let isReported = false;
+
+    if (req.user) {
+        const reportDoc = await Report.findOne({ counselor: id, reportBy: new ObjectId(req.user._id) });
+        if (reportDoc) {
+            isReported = true;
+        }
+    }
+
+
+    const response = responseJson(true, { ...serviceDetail, counselor, isReported }, '', 200);
     return res.status(200).json(response);
 });
 
