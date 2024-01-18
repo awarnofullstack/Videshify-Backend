@@ -16,6 +16,7 @@ const community = require("./community");
 const plans = require("./plans");
 const payment = require("./payment");
 const wallet = require("./wallet");
+const notification = require("../notifications");
 
 const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../middleware/authHandler");
 
@@ -34,5 +35,6 @@ router.use('/ticket', [authenticateToken, authorizeRoles('counselor'), authorize
 router.use('/community', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], community);
 router.use('/message', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], message);
 router.use('/dashboard', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], dashboard);
+router.use('/notification', [authenticateToken, authorizeRoles('counselor'), authorizeApproved], notification);
 
 module.exports = router;

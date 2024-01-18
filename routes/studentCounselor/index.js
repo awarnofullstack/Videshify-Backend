@@ -12,6 +12,7 @@ const message = require("./messages");
 const testimonial = require("./testimonial");
 const wallet = require("./wallet");
 const dashboard = require("./dashboard");
+const notification = require("../notifications");
 
 const { authenticateToken, authorizeRoles, authorizeApproved } = require("../../middleware/authHandler");
 
@@ -26,5 +27,7 @@ router.use('/wallet', [authenticateToken, authorizeRoles('student counselor'), a
 router.use('/ticket', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], ticket);
 router.use('/community', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], community);
 router.use('/message', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], message);
+router.use('/notification', [authenticateToken, authorizeRoles('student counselor'), authorizeApproved], notification);
+
 
 module.exports = router;

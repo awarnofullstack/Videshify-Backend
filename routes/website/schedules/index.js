@@ -6,12 +6,11 @@ const { body, validationResult } = require("express-validator");
 
 const router = express.Router();
 const responseJson = require("../../../utils/responseJson");
+const { NOTIFICATIONS, createNotification, createNotificationMessage } = require("../../../utils/notifications");
 
-const CounselorMember = require("../../../models/CounselorMember");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
 
 const Schedule = require("../../../models/Schedule");
-const { makeMoved } = require("../../../utils/fileUpload");
 const { genZoomToken } = require("../../../middleware/zoomAuthToken");
 const Payment = require("../../../models/Payment");
 const User = require("../../../models/User");
@@ -129,7 +128,7 @@ router.post("/checkout", genZoomToken, createScheduleValidationChain, async (req
         const response = responseJson(false, null, `${ReasonPhrases.UNPROCESSABLE_ENTITY} ${errors.array()[0].msg}`, StatusCodes.UNPROCESSABLE_ENTITY, errors.array());
         return res.status(StatusCodes.OK).json(response);
     }
-    
+
     const id = req.user._id;
 
     const { amount, service, reference_no } = req.body;
@@ -223,12 +222,14 @@ router.put("/:id", async (req, res) => {
 router.put("/:id/re-schedule", async (req, res) => {
     const { id } = req.params;
 
-    const schedule = await Schedule.findOne({ _id: id });
+    const schedule = await Schedule.findOne({ _id: id }).lean();
 
     if (!schedule) {
         throw new Error('You are trying to update non-existing document.');
     }
     const updatedSchedule = await Schedule.findByIdAndUpdate(id, { $set: { ...req.body, is_reschedule: true, reschedule_by: 'user' } }, { new: true });
+
+    await createNotification(NOTIFICATIONS.RESCHEDULE, `topic - ${schedule.topic}`, schedule.counselor)
 
     const response = responseJson(true, updatedSchedule, 'Re-Schedule requested successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
@@ -237,7 +238,7 @@ router.put("/:id/re-schedule", async (req, res) => {
 router.put("/:id/re-schedule/accept", async (req, res) => {
     const { id } = req.params;
 
-    const schedule = await Schedule.findOne({ _id: id });
+    const schedule = await Schedule.findOne({ _id: id }).lean();
 
     if (!schedule) {
         throw new Error('You are trying to update non-existing document.');
@@ -250,6 +251,11 @@ router.put("/:id/re-schedule/accept", async (req, res) => {
             reschedule_by: null
         }
     }, { new: true });
+
+    const isNotificationCreated = await createNotification(NOTIFICATIONS.RESCHEDULED, `topic - ${schedule.topic}`, schedule.counselor)
+
+
+    console.log(isNotificationCreated);
 
     const response = responseJson(true, updatedSchedule, 'Re-Schedule updated successfuly.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);

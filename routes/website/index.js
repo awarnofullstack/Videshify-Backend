@@ -16,6 +16,7 @@ const contact = require("./contact");
 const rating = require("./rating");
 const report = require("./reports");
 const messages = require("./messages");
+const notification = require("../notifications");
 
 router.use('/auth', auth);
 router.use('/student', [authenticateToken, authorizeRoles('student')], profile);
@@ -30,5 +31,7 @@ router.use('/contact', contact);
 router.use('/blog', blog);
 router.use('/messages', [authenticateToken, authorizeRoles('student')], messages);
 router.use('/report', [authenticateToken, authorizeRoles('student')], report);
+router.use('/notification', [authenticateToken, authorizeRoles('student')], notification);
+
 
 module.exports = router;
