@@ -51,10 +51,16 @@ router.post("/checkout", async (req, res) => {
     const haveActivePlan = await ActivePlanBilling.findOne({ isExpired: false, counselor: new ObjectId(req.user._id) });
 
     if (haveActivePlan) {
-        await haveActivePlan.updateOne({isExpired: true})
+        await haveActivePlan.updateOne({ isExpired: true })
     }
 
     const planByID = await PlanBilling.findOne({ _id: new ObjectId(plan) }).lean();
+
+    const paymentRefValidate = await Payment.findOne({ reference_no: paymentRef });
+
+    if (paymentRefValidate) {
+        throw new Error('Payment Referrence id can\'t be same.');
+    }
 
     const payment = await Payment.create({ user: req.user._id, amount: planByID.price, type: 'debit', service: 'plan purchase', reference_no: paymentRef })
 
