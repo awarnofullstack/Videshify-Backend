@@ -61,10 +61,10 @@ router.get('/all', async (req, res) => {
                 as: 'student',
                 pipeline: [
                     {
-                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] } }
+                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
                     },
                     {
-                        $project: { first_name: 1, last_name: 1, role: 1, createdAt: 1, name: 1 }
+                        $project: { first_name: 1, last_name: 1, role: 1, createdAt: 1, name: 1, id : 1 }
                     }
                 ]
             }
