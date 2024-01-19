@@ -156,7 +156,7 @@ router.post("/checkout", async (req, res) => {
     const haveActivePlan = await ActivePlanBilling.findOne({ isExpired: false, counselor: new ObjectId(req.user._id) });
 
     if (haveActivePlan) {
-        await haveActivePlan.updateOne({ isExpired: true })
+        await haveActivePlan.updateMany({ isExpired: true })
     }
 
     const planByID = await PlanBilling.findOne({ _id: new ObjectId(plan) }).lean();
