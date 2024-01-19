@@ -49,7 +49,7 @@ router.get("/", async (req, res) => {
             }
         },
         {
-            $project: { activePlan : 0}
+            $project: { activePlan: 0 }
         }
     ];
 
@@ -156,7 +156,7 @@ router.post("/checkout", async (req, res) => {
     const haveActivePlan = await ActivePlanBilling.find({ isExpired: false, counselor: new ObjectId(req.user._id) });
 
     if (haveActivePlan) {
-        await haveActivePlan.updateMany({ isExpired: true })
+        await ActivePlanBilling.updateMany({ isExpired: false, counselor: new ObjectId(req.user._id) }, { $set: { isExpired: true } })
     }
 
     const planByID = await PlanBilling.findOne({ _id: new ObjectId(plan) }).lean();
