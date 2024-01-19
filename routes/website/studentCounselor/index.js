@@ -14,6 +14,7 @@ const responseJson = require("../../../utils/responseJson");
 const StudentCounselor = require("../../../models/StudentCounselor");
 const Service = require("../../../models/Service");
 const Report = require("../../../models/Report");
+const CounselorTestimonial = require("../../../models/CounselorTestimonial");
 
 router.get('/mentors', async (req, res) => {
 
@@ -101,6 +102,7 @@ router.get("/:id/show", fetchToken, async (req, res) => {
     let counselorProfile = await StudentCounselor.findOne({ user_id: new ObjectId(id) }).populate([{ path: 'user_id', select: "first_name last_name email phone" }]).select({ bank_account_details: 0 });
 
     const counselorServices = await Service.paginate({ counselor: new ObjectId(id) }, { limit: 10, page: 1, sort: { _id: -1 } });
+    const counselorTestimonial = await CounselorTestimonial.find({ counselor: new ObjectId(id) }).select({ _id: 1, youtube_link: 1, counselor: 1 }).sort({ _id: -1 });
 
     let isReported = false;
 
@@ -111,7 +113,7 @@ router.get("/:id/show", fetchToken, async (req, res) => {
         }
     }
 
-    const response = responseJson(true, { counselorProfile, counselorServices, isReported }, '', 200);
+    const response = responseJson(true, { counselorProfile,counselorTestimonial, counselorServices, isReported }, '', 200);
     return res.status(200).json(response);
 })
 
