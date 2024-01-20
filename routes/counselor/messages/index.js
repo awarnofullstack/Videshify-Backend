@@ -56,10 +56,10 @@ router.get('/all', async (req, res) => {
                 as: 'students',
                 pipeline: [
                     {
-                        $addFields: { name: '$preferred_name', profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
+                        $addFields: { profile: { $concat: [process.env.BASE_URL, '/static/', '$profile'] } }
                     },
                     {
-                        $project: { name: 1, profile: 1 }
+                        $project: { profile: 1 }
                     },
                 ]
             },
@@ -97,13 +97,8 @@ router.get('/all', async (req, res) => {
         {
             $replaceRoot: {
                 newRoot: {
-                    $mergeObjects: [
-                        { $arrayElemAt: ['$nonEmptyFields', 0] },
-                        {
-                            student: '$user',
+                            student: {$mergeObjects: ["$user", { $arrayElemAt: ['$nonEmptyFields', 0] }]},
                             counselor: '$counselor',
-                        },
-                    ],
                 },
             },
         },
