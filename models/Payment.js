@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const mongoosePaginate = require("mongoose-paginate-v2")
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2")
 
 const PaymentSchema = Schema({
     user: {
@@ -41,6 +42,7 @@ const PaymentSchema = Schema({
 );
 
 PaymentSchema.plugin(mongoosePaginate);
+PaymentSchema.plugin(aggregatePaginate);
 
 
 module.exports = mongoose.model('Payment', PaymentSchema);

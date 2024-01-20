@@ -23,12 +23,47 @@ router.get("/", async (req, res) => {
 
     const query = { user: new ObjectId(req.user._id) }
 
-
     if (search) {
         query.reference_no = { $regex: `${search}`, $options: 'i' }
     }
 
-    const payments = await Payment.paginate(query, options);
+    const paymentPipepline = Payment.aggregate([
+        {
+            $lookup: {
+                from: 'activeplanbillings',
+                localField: '_id',
+                foreignField: 'paymentRef',
+                as: 'billing',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'planbillings',
+                            localField: 'plan',
+                            foreignField: '_id',
+                            as: 'plan',
+                        }
+                    },
+                    {
+                        $unwind: "$plan"
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$billing"
+        },
+        {
+            $addFields: { plan: {$concat: ["$billing.plan.label", " ","$billing.plan.type"]} }
+        },
+        {
+            $project: { billing: 0 }
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const payments = await Payment.aggregatePaginate(paymentPipepline, options);
     const response = responseJson(true, payments, '', 200);
     return res.status(200).json(response);
 });

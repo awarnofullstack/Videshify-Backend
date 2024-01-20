@@ -46,6 +46,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
     }
     const token = user.signJWT();
 
+    const profile = await Counselor.findOne({ user_id: user.id }).select('profile');
     const hasProfile = await Counselor.findOne({ user_id: user._id }).countDocuments();
 
     const eligibility = {
@@ -53,7 +54,7 @@ router.post("/login", loginValidationChain, async (req, res) => {
         isCompleted: hasProfile ? true : false,
     }
 
-    const response = responseJson(true, { token, user, eligibility }, `You're logged in.`, StatusCodes.OK);
+    const response = responseJson(true, { token, user, eligibility, profileUrl: profile?.profileUrl }, `You're logged in.`, StatusCodes.OK);
     return res.status(StatusCodes.OK).json(response);
 });
 
