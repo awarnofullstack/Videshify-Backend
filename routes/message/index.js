@@ -2,8 +2,8 @@ const express = require("express");
 const { StatusCodes } = require("http-status-codes");
 const mongoose = require("mongoose");
 
-const responseJson = require("../../../utils/responseJson");
-const StudentInCounselor = require("../../../models/StudentInCounselor");
+const responseJson = require("../../utils/responseJson");
+const StudentInCounselor = require("../../models/StudentInCounselor");
 const ObjectId = mongoose.Types.ObjectId;
 
 const router = express.Router();
@@ -97,8 +97,11 @@ router.get('/all', async (req, res) => {
         {
             $replaceRoot: {
                 newRoot: {
-                            student: {$mergeObjects: ["$user", { $arrayElemAt: ['$nonEmptyFields', 0] }]},
-                            counselor: '$counselor',
+                    // student: {$mergeObjects: ["$user", { $arrayElemAt: ['$nonEmptyFields', 0] }]},
+                    // counselor: '$counselor',
+                    _id: { $arrayElemAt: ['$nonEmptyFields._id', 0] },
+                    student: { $mergeObjects: [{ $arrayElemAt: ['$nonEmptyFields', 0] }, "$user"] },
+                    counselor: '$counselor',
                 },
             },
         },
@@ -113,7 +116,6 @@ router.get('/all', async (req, res) => {
     const response = responseJson(true, data, '', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
-
 
 
 module.exports = router;

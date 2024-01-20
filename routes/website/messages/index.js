@@ -115,7 +115,8 @@ router.get('/all', async (req, res) => {
             $replaceRoot: {
                 newRoot:
                 {
-                    counselor: { $mergeObjects: ["$user", { $arrayElemAt: ['$nonEmptyFields', 0] }] },
+                    _id: { $arrayElemAt: ['$nonEmptyFields_id', 0] },
+                    counselor: { $mergeObjects: [{ $arrayElemAt: ['$nonEmptyFields', 0] }, "$user"] },
                     student: '$student',
                 },
             },
