@@ -40,10 +40,10 @@ router.get('/all', async (req, res) => {
                 as: 'user',
                 pipeline: [
                     {
-                        $addFields: { name: { $concat: ['$first_name', ' ', '$last_name'] } }
+                        $addFields: { name: { $concat: ['$first_name', ' ', '$last_name'] }, profile: null }
                     },
                     {
-                        $project: { first_name: 1, last_name: 1, _id: 1, role: 1, name: 1 }
+                        $project: { first_name: 1, last_name: 1, _id: 1, role: 1, name: 1, profile: 1 }
                     },
                 ],
             },
@@ -113,14 +113,10 @@ router.get('/all', async (req, res) => {
         },
         {
             $replaceRoot: {
-                newRoot: {
-                    $mergeObjects: [
-                        { $arrayElemAt: ['$nonEmptyFields', 0] },
-                        {
-                            counselor: '$user',
-                            student: '$student',
-                        },
-                    ],
+                newRoot:
+                {
+                    counselor: { $mergeObjects: ["$user", { $arrayElemAt: ['$nonEmptyFields', 0] }] },
+                    student: '$student',
                 },
             },
         },
