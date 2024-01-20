@@ -75,6 +75,10 @@ router.put("/:id", async (req, res) => {
         throw new Error("No service exist with this service id.");
     }
 
+    if (req.files?.cover_photo) {
+        req.body.cover_photo = makeMoved(req.files.cover_photo);
+    }
+
     const inquiryUpdate = await Service.findByIdAndUpdate(id, { $set: { ...req.body } }, { new: true });
 
     const response = responseJson(true, inquiryUpdate, 'Service updated.', StatusCodes.OK, []);
