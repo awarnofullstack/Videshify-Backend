@@ -236,6 +236,9 @@ router.get("/", async (req, res) => {
                 },
             },
             {
+                $sort: { createdAt: -1 }
+            },
+            {
                 $replaceRoot: {
                     newRoot: {
                         $mergeObjects: [
