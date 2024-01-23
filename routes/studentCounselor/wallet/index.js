@@ -26,7 +26,41 @@ router.get("/transaction", async (req, res) => {
         query.reference = { $regex: `${search}`, $options: 'i' }
     }
 
-    const wallets = await WalletTransaction.paginate(query, options);
+
+    const walletPipeline = WalletTransaction.aggregate([
+        {
+            $lookup: {
+                from: 'schedules',
+                localField: 'schedule',
+                foreignField: '_id',
+                as: 'schedules',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "payments",
+                            localField: "payment_ref",
+                            foreignField: "_id",
+                            as: "payment"
+                        }
+                    },
+                    {
+                        $addFields: { price: { $arrayElemAt: ["$payment.amount", 0] } }
+                    },
+                    {
+                        $project: { payment: 0 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$schedules"
+        },
+        {
+            $match: query
+        },
+    ])
+
+    const wallets = await WalletTransaction.aggregatePaginate(walletPipeline, options);
     const response = responseJson(true, wallets, '', 200);
     return res.status(200).json(response);
 });

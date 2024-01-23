@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const mongoosePaginate = require("mongoose-paginate-v2")
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2")
 
 const WalletTransactionSchema = new mongoose.Schema({
     user: {
@@ -34,5 +35,6 @@ const WalletTransactionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 WalletTransactionSchema.plugin(mongoosePaginate);
+WalletTransactionSchema.plugin(aggregatePaginate);
 
 module.exports = mongoose.model('WalletTransaction', WalletTransactionSchema);

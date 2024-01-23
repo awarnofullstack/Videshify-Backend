@@ -60,8 +60,11 @@ router.post("/", [createServiceValidationChain, validate], async (req, res) => {
     if (req.files?.cover_photo) {
         req.body.cover_photo = makeMoved(req.files.cover_photo);
     }
+    if (req.body.contents) {
+        req.body.contents = req.body.contents.split(",");
+    }
 
-    const serviceUpdate = await Service.create({...req.body, counselor: req.user._id});
+    const serviceUpdate = await Service.create({ ...req.body, counselor: req.user._id });
 
     const response = responseJson(true, serviceUpdate, 'Service created.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
@@ -77,6 +80,10 @@ router.put("/:id", async (req, res) => {
 
     if (req.files?.cover_photo) {
         req.body.cover_photo = makeMoved(req.files.cover_photo);
+    }
+
+    if (req.body.contents) {
+        req.body.contents = req.body.contents.split(",");
     }
 
     const inquiryUpdate = await Service.findByIdAndUpdate(id, { $set: { ...req.body } }, { new: true });
