@@ -259,8 +259,7 @@ router.post("/", postCreateValidationChain, validate, async (req, res) => {
     const createPost = await CommunityPost.create({ author: id, ...req.body });
     const response = responseJson(true, createPost, 'Post uploaded successfuly.', StatusCodes.CREATED);
     return res.status(StatusCodes.CREATED).json(response);
-
-})
+});
 
 router.put("/:id", postCreateValidationChain, validate, async (req, res) => {
     const { id } = req.params;

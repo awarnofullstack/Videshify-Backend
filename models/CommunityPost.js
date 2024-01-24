@@ -46,8 +46,11 @@ const CommunityPostSchema = new Schema({
 
 contentSchema.set('toJSON', { virtuals: true });
 contentSchema.virtual('docUrl').get(function () {
-    if (this.url) {
+    if (this.url && this.type == 'image') {
         return process.env.BASE_URL + '/static/' + this.url;
+    }
+    if (this.url && this.type == 'video') {
+        return process.env.BASE_URL + '/video/' + this.url;
     }
     return null;
 });
