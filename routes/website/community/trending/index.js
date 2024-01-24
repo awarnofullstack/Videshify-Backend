@@ -223,6 +223,7 @@ router.get("/", async (req, res) => {
                     as: 'studentCounselorData',
                 },
             },
+
             {
                 $addFields: {
                     nonEmptyFields: {
@@ -248,6 +249,9 @@ router.get("/", async (req, res) => {
                         },
                     },
                 },
+            },
+            {
+                $sort: { createdAt: -1 }
             },
             {
                 $replaceRoot: {

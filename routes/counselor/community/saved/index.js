@@ -102,7 +102,21 @@ router.get("/", async (req, res) => {
                     text: 1,
                     content: 1,
                     category: 1,
-                    docUrl: { $concat: [process.env.BASE_URL, '/static/', '$content.url'] },
+                    docUrl: {
+                        $concat: [process.env.BASE_URL, {
+                            $cond: {
+                                if: { $eq: ['$content.type', 'image'] },
+                                then: { $concat: ['/static/', '$content.url'] },
+                                else: {
+                                    $cond: {
+                                        if: { $eq: ['$content.type', 'video'] },
+                                        then: { $concat: ['/video/', '$content.url'] },
+                                        else: null // Add additional conditions as needed
+                                    }
+                                }
+                            }
+                        }]
+                    },
                     postBy: { $arrayElemAt: ['$authorInfo', 0] },
                     likeCount: 1,
                     createdAt: 1,
