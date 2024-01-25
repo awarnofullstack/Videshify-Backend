@@ -53,7 +53,10 @@ router.get("/transaction", async (req, res) => {
             }
         },
         {
-            $unwind: "$schedules"
+            $unwind: {
+                path: "$schedules",
+                preserveNullAndEmptyArrays: true
+            }
         },
         {
             $match: query

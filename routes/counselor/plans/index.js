@@ -21,7 +21,14 @@ router.get("/", async (req, res) => {
                 from: 'activeplanbillings',
                 localField: '_id',
                 foreignField: 'plan',
-                as: 'activePlan'
+                as: 'activePlan',
+                pipeline:[
+                    {
+                        $match : {
+                            counselor : new ObjectId(req.user._id)
+                        }
+                    }
+                ]
             }
         },
         {
