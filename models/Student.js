@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const { english_proficiency } = require("../utils/EnumOptions");
 const Schema = mongoose.Schema;
 
+const mongoosePaginate = require("mongoose-paginate-v2")
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2")
+
 const StudentSchema = new Schema({
     user_id: {
         type: Schema.Types.ObjectId,
@@ -104,6 +107,10 @@ const StudentSchema = new Schema({
     }
 );
 
+
+
+StudentSchema.plugin(mongoosePaginate);
+StudentSchema.plugin(aggregatePaginate);
 
 StudentSchema.set('toJSON', { virtuals: true });
 

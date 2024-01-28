@@ -19,7 +19,6 @@ router.get("/transaction", async (req, res) => {
         limit: parseInt(limit || 10),
         page: parseInt(page || 1),
         sort: { _id: -1 },
-        populate: [{ path: 'schedule' }]
     }
 
     const query = { user: new ObjectId(req.user._id) }
@@ -63,7 +62,6 @@ router.get("/transaction", async (req, res) => {
             $match: query
         },
     ])
-
 
     const wallets = await WalletTransaction.aggregatePaginate(walletPipeline, options);
     const response = responseJson(true, wallets, '', 200);

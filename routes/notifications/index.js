@@ -1,14 +1,21 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { StatusCodes } = require("http-status-codes");
+const admin = require('firebase-admin');
+
 
 const responseJson = require("../../utils/responseJson");
-
 const router = express.Router();
 
 const Notification = require("../../models/Notification");
-
 const ObjectId = mongoose.Types.ObjectId;
+
+
+const serviceAccount = require("../../serviceAccount.json")
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 
 router.get('/', async (req, res) => {
     const { limit, page, search } = req.query;
@@ -33,6 +40,22 @@ router.get('/', async (req, res) => {
     return res.status(200).json(response);
 
 });
+
+
+router.get('/push-notification/:token', async (req, res) => {
+
+    const { token } = req.params;
+    const message = {
+        data: {
+            type: 'admin',
+            message: 'hello checking',
+        },
+        token: token,
+    };
+
+    await admin.messaging().send(message)
+});
+
 
 
 

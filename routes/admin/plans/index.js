@@ -66,7 +66,7 @@ router.put("/:id/edit", async (req, res) => {
 
 router.get("/billings", async (req, res) => {
 
-    const planBillings = await ActivePlanBilling.find().sort({ _id: -1 }).populate('paymentRef');
+    const planBillings = await ActivePlanBilling.find().sort({ _id: -1 }).populate([{path:'counselor',select: 'first_name last_name role _id'},{path:'plan',select: 'label type price'}]);
 
     const response = responseJson(true, planBillings, '', 200, []);
     return res.status(200).json(response);

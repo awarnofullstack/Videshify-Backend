@@ -1,18 +1,24 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { body, validationResult } = require("express-validator");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const bcrypt = require("bcrypt");
 const crypto = require('crypto');
-const transporter = require("../../utils/emailTransport");
-const { sendMailAsync } = require("../../utils/emailTransport");
 
+
+const { sendMailAsync } = require("../../utils/emailTransport");
 const responseJson = require("../../utils/responseJson");
+
+const { authenticateToken } = require("../../middleware/authHandler");
+
 const User = require("../../models/User");
-const fs = require("fs");
-const ejs = require("ejs");
+
 
 const router = express.Router();
 const resetPasswordValidationChain = [body('email').notEmpty().isEmail().trim()];
+
+
+const ObjectId = mongoose.Types.ObjectId;
 
 // Generate a reset token and email the reset link to the user
 router.post('/reset-password', resetPasswordValidationChain, async (req, res) => {
@@ -81,5 +87,22 @@ router.post('/reset-password/:token', async (req, res) => {
 
     return res.status(StatusCodes.OK).json(response);
 });
+
+
+// Handle password reset
+router.post('/update-fcm', authenticateToken, async (req, res) => {
+    const { token } = req.body;
+
+    const tokenUser = await User.findOne({ _id: new ObjectId(req.user._id) });
+
+    await tokenUser.updateOne({
+        fcmToken: token
+    });
+
+    const response = responseJson(true, null, 'Token updated', StatusCodes.OK, []);
+    return res.status(StatusCodes.OK).json(response);
+});
+
+
 
 module.exports = router;

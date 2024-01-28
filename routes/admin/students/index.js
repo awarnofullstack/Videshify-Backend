@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const { authenticateToken, authorizeRoles } = require("../../../middleware/authHandler");
 const responseJson = require("../../../utils/responseJson");
 const User = require("../../../models/User");
+const Schedule = require("../../../models/Schedule");
 const StudentSchoolAcademic = require("../../../models/StudentSchoolAcademic");
 const Student = require("../../../models/Student");
 const StudentCreativePortfolioAcademic = require("../../../models/StudentCreativePortfolioAcademic");
@@ -17,6 +18,7 @@ const StudentWorkExperienceActivity = require("../../../models/StudentWorkExperi
 const StudentInterestExploreCareer = require("../../../models/StudentInterestExploreCareer");
 const StudentNetworkingCareer = require("../../../models/StudentNetworkingCareer");
 const StudentResearchPrepCareer = require("../../../models/StudentResearchPrepCareer");
+const moment = require("moment");
 
 const router = express.Router();
 const registerValidationChain = [
@@ -45,27 +47,75 @@ router.post("/create", registerValidationChain, async (req, res) => {
     return res.status(StatusCodes.OK).json(response);
 });
 
-router.get('/list', async (req, res) => {
-    const { limit, page } = req.query;
 
-    const query = { role: 'student' };
+router.get("/tile", async (req, res) => {
+    const recentWeek = moment().subtract(7, 'days')
+
+    const totalStudents = await User.find({ role: 'student' }).countDocuments();
+    const RecentAdded = await User.find({ role: 'student', createdAt: { $gte: recentWeek } }).countDocuments();
+
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() } }).countDocuments();
+    const response = responseJson(true, { totalStudents, RecentAdded, totalUpcomings }, '', 200);
+    return res.status(200).json(response);
+});
+
+router.get('/list', async (req, res) => {
+    const { limit, page, search } = req.query;
+
     const options = {
         limit,
         page,
-        sort: { _id: -1 },
-        select: { password: 0, resetToken: 0, resetTokenExpiry: 0 }
     }
 
-    if (req.query?.search) {
-        query.first_name = { $regex: `^${req.query.search}`, $options: 'i' };
+    const orConditions = [];
+
+    const query = {};
+
+
+    if (search) {
+        orConditions.push(
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+        )
     }
 
-    const data = await User.paginate(query, { ...options });
-
-    if (!data) {
-        const response = responseJson(true, data, 'No Data Found', StatusCodes.OK, []);
-        return res.status(StatusCodes.OK).json(response);
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
     }
+
+    const students = Student.aggregate([
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'user_id',
+                foreignField: '_id',
+                as: 'student',
+                pipeline: [
+                    {
+                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
+                    },
+                    {
+                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$student"
+        },
+        {
+            $addFields: { first_name: "$student.first_name", last_name: "$student.last_name", role: "$student.role", createdAt: "$student.createdAt", name: "$student.name", id: "$student.id", email: "$student.email" }
+        },
+        {
+            $project: { first_name: 1, last_name: 1, role: 1, createdAt: 1, name: 1, id: 1, email: 1 }
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const data = await Student.aggregatePaginate(students, options);
+
     const response = responseJson(true, data, '', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
@@ -122,9 +172,9 @@ router.get('/:id/activities', async (req, res) => {
 router.get('/:id/careers', async (req, res) => {
     const { id } = req.params;
 
-    const interest = await StudentInterestExploreCareer.find({ student_id: id }).sort({_id : -1}).lean();
-    const networking = await StudentNetworkingCareer.find({ student_id: id }).sort({_id : -1}).lean();
-    const researchPrep = await StudentResearchPrepCareer.find({ student_id: id }).sort({_id : -1}).lean();
+    const interest = await StudentInterestExploreCareer.find({ student_id: id }).sort({ _id: -1 }).lean();
+    const networking = await StudentNetworkingCareer.find({ student_id: id }).sort({ _id: -1 }).lean();
+    const researchPrep = await StudentResearchPrepCareer.find({ student_id: id }).sort({ _id: -1 }).lean();
 
     const response = responseJson(true, { interest, networking, researchPrep }, '', 200);
     return res.status(StatusCodes.OK).json(response);
@@ -135,8 +185,8 @@ router.get('/:id/careers', async (req, res) => {
 // remove student from list
 router.get('/:id/remove', async (req, res) => {
     const { id } = req.params;
-    const isStudentProfile = await Student.findOne({ student: id }).deleteOne();
-    const isUser = await User.findOne({ student: id }).deleteOne();
+    const isStudentProfile = await Student.findOne({ user_id: id }).deleteOne();
+    const isUser = await User.findOne({ _id: id }).deleteOne();
 
     if (!isStudentProfile) {
         const response = responseJson(false, {}, 'Failed to remove student, try again.', StatusCodes.INTERNAL_SERVER_ERROR);

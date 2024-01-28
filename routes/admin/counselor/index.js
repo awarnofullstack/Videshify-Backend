@@ -1,30 +1,87 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose")
 
 const User = require("../../../models/User");
 const Counselor = require("../../../models/Counselor");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
+const CounselorMember = require("../../../models/CounselorMember");
 const Student = require("../../../models/Student");
 const responseJson = require("../../../utils/responseJson");
 const Schedule = require("../../../models/Schedule");
+const WalletTransaction = require("../../../models/WalletTransaction");
 
+
+const ObjectId = mongoose.Types.ObjectId;
 
 
 router.get('/', async (req, res) => {
-    const { limit, page } = req.query;
+    const { limit, page, search } = req.query;
 
     const options = {
         limit,
         page,
-        sort: { _id: -1 },
-        populate: [{ path: 'user_id', select: 'first_name last_name email phone role approved' }]
     }
 
-    const counselors = await Counselor.paginate({}, options);
+    const orConditions = [];
 
-    const response = responseJson(true, counselors, '', 200);
+    const query = {};
+
+    if (search) {
+        orConditions.push(
+            { "user_id.name": { $regex: search, $options: 'i' } },
+            { "user_id.email": { $regex: search, $options: 'i' } },
+            { agency_name: { $regex: search, $options: 'i' } },
+            { agency_email: { $regex: search, $options: 'i' } },
+        )
+    }
+
+    if (orConditions.length > 0) {
+        query.$or = orConditions;
+    }
+
+    const counselors = Counselor.aggregate([
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'user_id',
+                foreignField: '_id',
+                as: 'user_id',
+                pipeline: [
+                    {
+                        $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
+                    },
+                    {
+                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$user_id"
+        },
+        {
+            $project: { agency_name: 1, agency_email: 1, user_id: 1, _id: 1, user_id: 1 }
+        },
+        {
+            $match: query
+        }
+    ])
+
+    const data = await Counselor.aggregatePaginate(counselors, options);
+
+    const response = responseJson(true, data, '', 200);
     return res.status(200).json(response)
-})
+});
+
+router.get('/tile', async (req, res) => {
+    const students = await User.find({ role: 'student' }).countDocuments();
+    const counselors = await User.find({ role: 'counselor' }).countDocuments();
+    const mentors = await User.find({ role: 'student counselor' }).countDocuments();
+
+    const response = responseJson(true, { students, counselors, mentors }, '', 200);
+    return res.status(200).json(response)
+});
 
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
@@ -49,7 +106,7 @@ router.get('/:id/students', async (req, res) => {
     const options = {
         limit,
         page,
-        populate: ['student'],
+        populate: [{ path: 'student', select: 'first_name last_name _id email' }],
     }
 
     const data = await StudentInCounselor.paginate({ counselor: id }, options);
@@ -58,10 +115,10 @@ router.get('/:id/students', async (req, res) => {
         const response = responseJson(true, data, 'No Data Found', 200, []);
         return res.status(200).json(response);
     }
+
     const response = responseJson(true, data, '', 200, []);
     return res.status(200).json(response);
 });
-
 
 router.get('/:id/schedules', async (req, res) => {
     const { id } = req.params;
@@ -112,6 +169,121 @@ router.get('/:id/schedules-upcoming', async (req, res) => {
     query.start_time = { $gte: new Date() }
 
     const members = await Schedule.paginate(query, options);
+    const response = responseJson(true, members, '', 200);
+    return res.status(200).json(response);
+});
+
+router.get("/:id/payments", async (req, res) => {
+
+    const { id } = req.params;
+    const counselors = await Counselor.findOne({ user_id: id });
+    if (!counselors) {
+        throw new Error('No counselor profile found with this user id.');
+    }
+
+    const { limit, page, search } = req.query;
+
+    const options = {
+        limit: parseInt(limit || 10),
+        page: parseInt(page || 1),
+        sort: { _id: -1 }
+    }
+
+    const query = { user: new ObjectId(id) }
+
+    if (search) {
+        query.reference = { $regex: `${search}`, $options: 'i' }
+    }
+
+    const walletPipeline = WalletTransaction.aggregate([
+        {
+            $lookup: {
+                from: 'schedules',
+                localField: 'schedule',
+                foreignField: '_id',
+                as: 'schedules',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "payments",
+                            localField: "payment_ref",
+                            foreignField: "_id",
+                            as: "payment"
+                        }
+                    },
+                    {
+                        $addFields: { price: { $arrayElemAt: ["$payment.amount", 0] } }
+                    },
+                    {
+                        $project: { payment: 0 }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: {
+                path: "$schedules",
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $match: query
+        },
+    ])
+
+    const wallets = await WalletTransaction.aggregatePaginate(walletPipeline, options);
+
+
+    const payments = await Counselor.findOne({ user_id: new ObjectId(id) }).lean()
+
+    const recentPayment = await WalletTransaction.findOne({ user: new ObjectId(id) }).sort({ _id: -1 }).lean();
+
+    const withdrawn = await WalletTransaction.aggregate([
+        {
+            $match: { $and: [{ user: new ObjectId(id) }, { type: 'debit' }] }
+        },
+        {
+            $group: {
+                _id: "$user",
+                sum: { $sum: '$amount' }
+            }
+        },
+        {
+            $project: { _id: 0, sum: 1 }
+        }
+    ]);
+
+    const tile = { totalAmount: payments?.walletBalance || 0, recentPayment: recentPayment?.amount || 0, totalWithdraw: withdrawn[0]?.sum || 0 }
+
+
+    const response = responseJson(true, { wallets, tile }, '', 200);
+    return res.status(200).json(response);
+});
+
+router.get("/:id/members", async (req, res) => {
+
+    const { id } = req.params;
+    const counselors = await Counselor.findOne({ user_id: id });
+    if (!counselors) {
+        throw new Error('No counselor profile found with this user id.');
+    }
+
+    const { limit, page, search } = req.query;
+
+    const options = {
+        limit: parseInt(limit || 10),
+        page: parseInt(page || 1),
+        sort: { _id: -1 }
+    }
+
+    const query = { counselor: new ObjectId(id) }
+
+    if (search) {
+        query.name = { $regex: `${search}`, $options: 'i' }
+    }
+
+    const members = await CounselorMember.paginate(query, options)
+
     const response = responseJson(true, members, '', 200);
     return res.status(200).json(response);
 });

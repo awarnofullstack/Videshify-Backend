@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2")
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2")
 const jwt = require("jsonwebtoken");
 const Image = require("./Image");
 
@@ -34,6 +35,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    fcmToken: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -41,6 +46,7 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.plugin(mongoosePaginate);
+UserSchema.plugin(aggregatePaginate);
 
 // Custom methods 
 UserSchema.methods.signJWT = function (props) {
