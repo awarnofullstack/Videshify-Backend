@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
                         $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
                     },
                     {
-                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1 }
+                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1, approved: 1 }
                     }
                 ]
             }
@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
             $unwind: "$user_id"
         },
         {
-            $project: { user_id: 1, _id: 1, user_id: 1 }
+            $project: { user_id: 1, _id: 1 }
         },
         {
             $match: query
@@ -93,7 +93,7 @@ router.get('/:id/students', async (req, res) => {
     const options = {
         limit,
         page,
-        populate: [{path: 'student', select: 'first_name last_name _id email'}],
+        populate: [{ path: 'student', select: 'first_name last_name _id email' }],
     }
 
     const data = await StudentInCounselor.paginate({ counselor: id }, options);
@@ -276,7 +276,7 @@ router.delete("/:id/delete", async (req, res) => {
     const { id } = req.params;
 
     const findUser = await User.findById(id).deleteOne();
-    const findCounselor = await StudentCounselor.findOne({user_id: id}).deleteOne();
+    const findCounselor = await StudentCounselor.findOne({ user_id: id }).deleteOne();
 
     const response = responseJson(true, null, 'Account deleted', 200, []);
     return res.status(200).json(response);

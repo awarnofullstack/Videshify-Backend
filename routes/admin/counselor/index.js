@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
                         $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
                     },
                     {
-                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1 }
+                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1, approved:1 }
                     }
                 ]
             }
@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
             $unwind: "$user_id"
         },
         {
-            $project: { agency_name: 1, agency_email: 1, user_id: 1, _id: 1, user_id: 1 }
+            $project: { agency_name: 1, agency_email: 1, user_id: 1, _id: 1}
         },
         {
             $match: query
