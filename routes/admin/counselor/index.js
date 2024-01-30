@@ -85,7 +85,7 @@ router.get('/tile', async (req, res) => {
 
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
-    const counselors = await Counselor.findOne({ user_id: id });
+    const counselors = await Counselor.findOne({ user_id: id }).populate({path:'user_id', select:'_id first_name last_name email phone role'});
 
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
