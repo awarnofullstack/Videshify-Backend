@@ -14,12 +14,14 @@ const booking = require("./schedules");
 const community = require("./community");
 const message = require("./messages");
 const ticket = require("./ticket");
+const wallet = require("./wallet");
 
 const { authenticateToken, authorizeRoles } = require("../../middleware/authHandler");
 
 router.use('/auth', auth);
 router.use('/dashboard', [authenticateToken, authorizeRoles('admin')], dashboard);
 router.use('/student', [authenticateToken, authorizeRoles('admin')], studentAuth);
+router.use('/wallet', [authenticateToken, authorizeRoles('admin')], wallet);
 router.use('/payment', [authenticateToken, authorizeRoles('admin')], payment);
 router.use('/schedule', [authenticateToken, authorizeRoles('admin')], booking);
 router.use('/counselor', [authenticateToken, authorizeRoles('admin')], counselor);

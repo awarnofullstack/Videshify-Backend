@@ -212,6 +212,7 @@ router.get("/:id/payments", async (req, res) => {
     return res.status(200).json(response);
 });
 
+
 router.get('/:id/schedules', async (req, res) => {
     const { id } = req.params;
     const { limit, page } = req.query;
@@ -220,7 +221,7 @@ router.get('/:id/schedules', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
     }
     const query = { counselor: id };
 
@@ -237,7 +238,7 @@ router.get('/:id/schedules-past', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
     }
     const query = { counselor: id };
     query.start_time = { $lt: new Date() }
@@ -255,7 +256,7 @@ router.get('/:id/schedules-upcoming', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
     }
     const query = { counselor: id };
     query.start_time = { $gte: new Date() }
