@@ -13,6 +13,7 @@ const payment = require("./payments");
 const booking = require("./schedules");
 const community = require("./community");
 const message = require("./messages");
+const ticket = require("./ticket");
 
 const { authenticateToken, authorizeRoles } = require("../../middleware/authHandler");
 
@@ -27,6 +28,7 @@ router.use('/blog', [authenticateToken, authorizeRoles('admin')], blogs);
 router.use('/community', [authenticateToken, authorizeRoles('admin')], community);
 router.use('/message', [authenticateToken, authorizeRoles('admin')], message);
 router.use('/plans', [authenticateToken, authorizeRoles('admin')], plans);
+router.use('/ticket', [authenticateToken, authorizeRoles('admin')], ticket);
 router.use('/report', [authenticateToken, authorizeRoles('admin')], report);
 
 module.exports = router;

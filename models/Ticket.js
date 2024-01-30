@@ -55,25 +55,5 @@ const TicketSchema = new Schema({
 
 TicketSchema.plugin(mongoosePaginate);
 
-// TicketSchema.pre('save', async function (next) {
-//     if (!this.isNew) {
-//         return next();
-//     }
-
-//     try {
-//         const lastTicket = await this.findOne({}, {}, { sort: { 'ticketId': -1 } });
-
-//         if (lastTicket) {
-//             this.ticketId = lastTicket.ticketId + 1;
-//         } else {
-//             this.ticketId = 1000; // If no previous ticket exists, start at 1
-//         }
-
-//         next();
-//     } catch (error) {
-//         next(error);
-//     }
-// });
-
 module.exports = mongoose.model('Ticket', TicketSchema);
 
