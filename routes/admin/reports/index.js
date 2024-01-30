@@ -16,8 +16,8 @@ router.get("/", async (req, res) => {
         limit,
         sort: { _id: -1 },
         populate: [
-            { path: "reportBy", select: 'first_name last_name email phone approved' },
-            { path: "counselor", select: 'first_name last_name email phone approved' }]
+            { path: "reportBy", select: 'first_name last_name email phone approved role' },
+            { path: "counselor", select: 'first_name last_name email phone approved role' }]
     }
 
 
