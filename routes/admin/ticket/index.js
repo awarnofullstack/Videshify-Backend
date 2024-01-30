@@ -1,4 +1,5 @@
 const express = require("express");
+const moment = require("moment")
 const mongoose = require("mongoose");
 const { StatusCodes, ReasonPhrases } = require("http-status-codes");
 const { body, validationResult } = require("express-validator");
@@ -40,6 +41,21 @@ router.get("/", async (req, res) => {
 
     const tickets = await Ticket.paginate(query, options);
     const response = responseJson(true, tickets, '', 200);
+    return res.status(200).json(response);
+});
+
+
+router.get("/tile", async (req, res) => {
+
+    let lastTicketRaised = await Ticket.findOne().sort({ _id: -1 }).lean();
+    const pendingTickets = await Ticket.find({status: 'open' }).countDocuments();
+    const resolvedTickets = await Ticket.find({status: 'closed' }).countDocuments();
+
+    if (lastTicketRaised) {
+        lastTicketRaised = moment(lastTicketRaised.createdAt).format('DD MMM YYYY')
+    }
+
+    const response = responseJson(true, { lastTicketRaised, pendingTickets, resolvedTickets }, '', 200);
     return res.status(200).json(response);
 });
 
