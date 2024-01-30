@@ -4,11 +4,17 @@ const { getReasonPhrase, StatusCodes, ReasonPhrases } = require("http-status-cod
 const errorHandler = (error, req, res, next) => {
 
     console.log("__________error______________", error.name);
+    
     if (error.name === 'ValidationError') {
         const response = responseJson(false, null, error.message, StatusCodes.INTERNAL_SERVER_ERROR, []);
         return res.status(StatusCodes.OK).json(response);
     }
-    
+
+    if (error.name === 'BSONError') {
+        const response = responseJson(false, null, `Incorrect or missing document ID`, StatusCodes.INTERNAL_SERVER_ERROR, []);
+        return res.status(StatusCodes.OK).json(response);
+    }
+
     if (error.name === 'CastError' && error.kind === 'ObjectId') {
         const response = responseJson(false, null, `${error.path} is missing or invalid.`, StatusCodes.INTERNAL_SERVER_ERROR, []);
         return res.status(StatusCodes.OK).json(response);

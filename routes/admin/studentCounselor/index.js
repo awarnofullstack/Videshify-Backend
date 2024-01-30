@@ -4,6 +4,7 @@ const mongoose = require("mongoose")
 
 const User = require("../../../models/User");
 const StudentCounselor = require("../../../models/StudentCounselor");
+const CounselorTestimonial = require("../../../models/CounselorTestimonial");
 const StudentInCounselor = require("../../../models/StudentInCounselor");
 const Student = require("../../../models/Student");
 const responseJson = require("../../../utils/responseJson");
@@ -72,7 +73,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
-    const counselors = await StudentCounselor.findOne({ user_id: id }).populate({path:'user_id', select:'_id first_name last_name email phone role'});;
+    const counselors = await StudentCounselor.findOne({ user_id: id }).populate({ path: 'user_id', select: '_id first_name last_name email phone role' });;
 
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
@@ -81,6 +82,21 @@ router.get('/:id/profile', async (req, res) => {
     const response = responseJson(true, counselors, '', 200);
     return res.status(200).json(response)
 });
+
+router.get("/:id/testimonials", async (req, res) => {
+
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const options = {
+        limit,
+        page,
+        sort: { _id: -1 },
+    }
+
+    const testimonials = await CounselorTestimonial.paginate({ counselor: new ObjectId(id) }, options);
+    const response = responseJson(true, testimonials, '', 200);
+    return res.status(200).json(response);
+})
 
 router.get('/:id/students', async (req, res) => {
     const { id } = req.params;
@@ -112,7 +128,7 @@ router.get("/:id/payments", async (req, res) => {
 
     const { id } = req.params;
     const counselors = await StudentCounselor.findOne({ user_id: id })
-    ;
+        ;
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
     }

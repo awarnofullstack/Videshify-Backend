@@ -10,6 +10,7 @@ const Student = require("../../../models/Student");
 const responseJson = require("../../../utils/responseJson");
 const Schedule = require("../../../models/Schedule");
 const WalletTransaction = require("../../../models/WalletTransaction");
+const CounselorTestimonial = require("../../../models/CounselorTestimonial");
 
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -94,6 +95,21 @@ router.get('/:id/profile', async (req, res) => {
     const response = responseJson(true, counselors, '', 200);
     return res.status(200).json(response)
 });
+
+router.get("/:id/testimonials", async (req, res) => {
+
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const options = {
+        limit,
+        page,
+        sort: { _id: -1 },
+    }
+
+    const testimonials = await CounselorTestimonial.paginate({ counselor: new ObjectId(id) }, options);
+    const response = responseJson(true, testimonials, '', 200);
+    return res.status(200).json(response);
+})
 
 router.get('/:id/students', async (req, res) => {
     const { id } = req.params;
