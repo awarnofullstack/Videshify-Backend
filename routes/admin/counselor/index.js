@@ -144,7 +144,7 @@ router.get('/:id/schedules', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
     }
     const query = { counselor: id };
 
@@ -161,7 +161,7 @@ router.get('/:id/schedules-past', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
     }
     const query = { counselor: id };
     query.start_time = { $lt: new Date() }
@@ -179,7 +179,7 @@ router.get('/:id/schedules-upcoming', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
     }
     const query = { counselor: id };
     query.start_time = { $gte: new Date() }
