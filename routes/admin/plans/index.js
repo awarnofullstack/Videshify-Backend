@@ -65,8 +65,22 @@ router.put("/:id/edit", async (req, res) => {
 });
 
 router.get("/billings", async (req, res) => {
+    const { date } = req.query;
 
-    const planBillings = await ActivePlanBilling.find().sort({ _id: -1 }).populate([{path:'counselor',select: 'first_name last_name role _id'},{path:'plan',select: 'label type price'}]);
+    const query = {};
+
+    if (date && date !== 'null' && date !== '' && date !== 'Invalid date') {
+        const momentDate = moment(date);
+        const startOfDay = momentDate.add(1, 'day');
+
+        query.start_time = {
+            $gte: date,
+            $lt: startOfDay,
+        };
+    }
+
+
+    const planBillings = await ActivePlanBilling.find(query).sort({ _id: -1 }).populate([{ path: 'counselor', select: 'first_name last_name role _id' }, { path: 'plan', select: 'label type price' }]);
 
     const response = responseJson(true, planBillings, '', 200, []);
     return res.status(200).json(response);
