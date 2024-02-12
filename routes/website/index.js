@@ -16,7 +16,7 @@ const contact = require("./contact");
 const rating = require("./rating");
 const report = require("./reports");
 const messages = require("./messages");
-const notification = require("../notifications");
+const notification = require("./notification");
 
 router.use('/auth', auth);
 router.use('/student', [authenticateToken, authorizeRoles('student')], profile);

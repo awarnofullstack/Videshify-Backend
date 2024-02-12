@@ -9,7 +9,7 @@ const responseJson = require("../../../utils/responseJson");
 const Inquiry = require("../../../models/Inquiry");
 const Counselor = require("../../../models/Counselor");
 const { makeMoved } = require("../../../utils/fileUpload");
-
+const { sendInquiry } = require("../../../utils/inquiryNotification");
 
 const ObjectId = mongoose.Types.ObjectId;
 const createInquiryQuoteValidationChain = [
@@ -94,6 +94,8 @@ router.post("/", createInquiryQuoteValidationChain, async (req, res) => {
     inquiryCreate.responds.push(respond);
     await inquiryCreate.save();
 
+    await sendInquiry(counselor)
+
     const response = responseJson(true, inquiryCreate, 'Inquiry sent.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);
 });
@@ -107,6 +109,8 @@ router.put("/:id", async (req, res) => {
     }
 
     const newRespond = { _id: new ObjectId(), message: req.body.message, sender: 'student' }
+
+    await sendInquiry(inquiry.counselor)
 
     const inquiryUpdate = await Inquiry.findByIdAndUpdate(new ObjectId(id), { $push: { responds: newRespond } }, { new: true });
 

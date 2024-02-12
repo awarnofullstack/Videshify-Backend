@@ -9,7 +9,7 @@ const responseJson = require("../../../utils/responseJson");
 
 const Inquiry = require("../../../models/Inquiry");
 const { makeMoved } = require("../../../utils/fileUpload");
-
+const { sendInquiry } = require("../../../utils/inquiryNotification");
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -50,8 +50,6 @@ router.get("/", async (req, res) => {
     const response = responseJson(true, inquiries, '', 200);
     return res.status(200).json(response);
 });
-
-
 
 router.get("/tile", async (req, res) => {
     const recentWeek = moment().subtract(7, 'days')
@@ -102,6 +100,8 @@ router.put("/:id", async (req, res) => {
 
     inquiry.responds.push(newRespond);
     const inquiryUpdate = await inquiry.save();
+
+    await sendInquiry(inquiry.student)
 
     const response = responseJson(true, inquiryUpdate, 'Quote sent to inquiry.', StatusCodes.OK, []);
     return res.status(StatusCodes.OK).json(response);

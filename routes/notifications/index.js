@@ -11,56 +11,53 @@ const Notification = require("../../models/Notification");
 const ObjectId = mongoose.Types.ObjectId;
 
 
-const serviceAccount = require("../../serviceAccount.json")
+// const serviceAccount = require("../../serviceAccount.json")
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+// admin.initializeApp({
+//     credential: admin.credential.cert(serviceAccount)
+// });
 
-router.get('/', async (req, res) => {
-    const { limit, page, search } = req.query;
+// router.get('/', async (req, res) => {
+//     const { limit, page, search } = req.query;
 
-    const options = {
-        limit: parseInt(limit || 10),
-        page: parseInt(page || 1),
-        sort: { createdAt: -1 }
-    }
+//     const options = {
+//         limit: parseInt(limit || 10),
+//         page: parseInt(page || 1),
+//         sort: { createdAt: -1 }
+//     }
 
-    const query = {
-        isRead: false,
-        $or: [
-            { targetUser: { $exists: false } },  // Global notifications
-            { targetUser: new ObjectId(req.user._id) }  // Notifications specifically for the user
-        ],
-    }
+//     const query = {
+//         isRead: false,
+//         $or: [
+//             { targetUser: { $exists: false } },  // Global notifications
+//             { targetUser: new ObjectId(req.user._id) }  // Notifications specifically for the user
+//         ],
+//     }
 
-    const notifications = await Notification.paginate(query, options);
+//     const notifications = await Notification.paginate(query, options);
 
-    const response = responseJson(true, notifications, '', StatusCodes.OK, []);
-    return res.status(200).json(response);
+//     const response = responseJson(true, notifications, '', StatusCodes.OK, []);
+//     return res.status(200).json(response);
 
-});
-
-
-router.get('/push-notification/:token', async (req, res) => {
-
-    const { token } = req.params;
-    const message = {
-        data: {
-            type: 'admin',
-            message: 'hello checking',
-        },
-        token: token,
-    };
-
-    await admin.messaging().send(message)
-});
+// });
 
 
+// router.get('/push-notification/:token/:count', async (req, res) => {
+
+//     const { token, count } = req.params;
+//     const message = {
+//         data: {
+//             type: 'admin',
+//             message: count,
+//         },
+//         token: token,
+//     };
+
+//     await admin.messaging().send(message)
+// });
 
 
 router.patch('/clear', async (req, res) => {
-
     const update = await Notification.updateMany({ targetUser: new ObjectId(req.user._id), isRead: false }, { isRead: true });
     const response = responseJson(true, [], 'notifications cleared', StatusCodes.OK, []);
     return res.status(200).json(response);
