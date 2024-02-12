@@ -18,7 +18,7 @@ const sendInquiry = async (userId) => {
     const message = {
         data: {
             type: 'admin',
-            message: count,
+            message: true,
         },
         token,
     };
