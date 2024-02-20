@@ -11,6 +11,7 @@ const responseJson = require("../../../utils/responseJson");
 const Schedule = require("../../../models/Schedule");
 const WalletTransaction = require("../../../models/WalletTransaction");
 const CounselorTestimonial = require("../../../models/CounselorTestimonial");
+const Payment = require("../../../models/Payment");
 
 
 const ObjectId = mongoose.Types.ObjectId;
@@ -53,7 +54,7 @@ router.get('/', async (req, res) => {
                         $addFields: { name: { $concat: ["$first_name", " ", "$last_name"] }, id: "$_id" }
                     },
                     {
-                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1, approved:1 }
+                        $project: { first_name: 1, last_name: 1, email: 1, role: 1, createdAt: 1, name: 1, id: 1, approved: 1 }
                     }
                 ]
             }
@@ -62,7 +63,10 @@ router.get('/', async (req, res) => {
             $unwind: "$user_id"
         },
         {
-            $project: { agency_name: 1, agency_email: 1, user_id: 1, _id: 1}
+            $project: { agency_name: 1, agency_email: 1, user_id: 1, _id: 1 }
+        },
+        {
+            $sort: { _id: -1 }
         },
         {
             $match: query
@@ -86,7 +90,7 @@ router.get('/tile', async (req, res) => {
 
 router.get('/:id/profile', async (req, res) => {
     const { id } = req.params;
-    const counselors = await Counselor.findOne({ user_id: id }).populate({path:'user_id', select:'_id first_name last_name email phone role'});
+    const counselors = await Counselor.findOne({ user_id: id }).populate({ path: 'user_id', select: '_id first_name last_name email phone role' });
 
     if (!counselors) {
         throw new Error('No counselor profile found with this user id.');
@@ -144,7 +148,7 @@ router.get('/:id/schedules', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }, { path: 'student', select: ['first_name', 'last_name', '_id'] }, { path: 'counselor', select: ['first_name', 'last_name', '_id', 'role'] }]
     }
     const query = { counselor: id };
 
@@ -161,7 +165,7 @@ router.get('/:id/schedules-past', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }, { path: 'student', select: ['first_name', 'last_name', '_id'] }, { path: 'counselor', select: ['first_name', 'last_name', '_id', 'role'] }]
     }
     const query = { counselor: id };
     query.start_time = { $lt: new Date() }
@@ -179,7 +183,7 @@ router.get('/:id/schedules-upcoming', async (req, res) => {
         limit,
         page,
         sort: { _id: -1 },
-        populate: [{ path: 'assigned_to', select: ['name', 'profile'] },{ path: 'student', select: ['first_name', 'last_name','_id'] },{ path: 'counselor', select: ['first_name', 'last_name','_id','role'] }]
+        populate: [{ path: 'assigned_to', select: ['name', 'profile'] }, { path: 'student', select: ['first_name', 'last_name', '_id'] }, { path: 'counselor', select: ['first_name', 'last_name', '_id', 'role'] }]
     }
     const query = { counselor: id };
     query.start_time = { $gte: new Date() }
@@ -331,6 +335,13 @@ router.get("/:id/approve", async (req, res) => {
 router.get('/:id/reports', async (req, res) => {
     const { id } = req.params;
 
+
+    const counselor = await Counselor.findOne({ user_id: id });
+    if (!counselor) {
+        throw new Error('counselor id is invalid or missing.');
+    }
+
+
     const report = {
         totalReceivedAmount: 0,
         lastReceivedAmount: 0,
@@ -342,13 +353,35 @@ router.get('/:id/reports', async (req, res) => {
         pageViews: 0,
         totalServices: 0,
     }
-    const counselor = await Counselor.findOne({ user_id: id });
-    if (!counselor) {
-        throw new Error('counselor id is invalid or missing.');
-    }
+
+    const recentPayment = await WalletTransaction.findOne({ user: new ObjectId(id) }).sort({ _id: -1 }).lean();
+
+    const withdrawn = await WalletTransaction.aggregate([
+        {
+            $match: { $and: [{ user: new ObjectId(id) }, { type: 'debit' }] }
+        },
+        {
+            $group: {
+                _id: "$user",
+                sum: { $sum: '$amount' }
+            }
+        },
+        {
+            $project: { _id: 0, sum: 1 }
+        }
+    ]);
+
+
+    const totalBookings = await Schedule.find({ counselor: new ObjectId(id) }).countDocuments();
+    const totalUpcomings = await Schedule.find({ start_time: { $gte: new Date() }, counselor: new ObjectId(id) }).countDocuments();
 
     report.totalSessions = await counselor.getSessionsCount();
     report.totalStudent = await counselor.getStudentsCount();
+    report.totalReceivedAmount = counselor?.walletBalance || 0;
+    report.lastReceivedAmount = recentPayment?.amount || 0;
+    report.totalAmountRemains = withdrawn[0]?.sum || 0;
+    report.totalSessions = totalBookings;
+    report.upcomingSchedules = totalUpcomings;
 
     const response = responseJson(true, report, '', 200);
     return res.status(200).json(response);
