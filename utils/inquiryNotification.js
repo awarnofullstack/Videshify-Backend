@@ -8,22 +8,26 @@ admin.initializeApp({
 });
 
 const sendInquiry = async (userId) => {
-    const user = await User.findById(userId);
+    try {
+        const user = await User.findById(userId);
 
-    if (!user || !user?.fcmToken) {
-        return
+        if (!user || !user?.fcmToken) {
+            return
+        }
+
+        const token = user.fcmToken;
+        const message = {
+            data: {
+                type: 'admin',
+                message: 'true',
+            },
+            token,
+        };
+
+        return await admin.messaging().send(message)
+    } catch (error) {
+        console.log("fcm error");
     }
-
-    const token = user.fcmToken;
-    const message = {
-        data: {
-            type: 'admin',
-            message: 'true',
-        },
-        token,
-    };
-
-    return await admin.messaging().send(message)
 };
 
 
